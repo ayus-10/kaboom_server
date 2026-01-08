@@ -1,41 +1,61 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { GoogleProfile } from './types/google-profile';
+import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserToken } from 'src/entities/user-token.entity';
+import { DataSource } from 'typeorm/browser';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly dataSource: DataSource,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   async findOrCreateFromGoogle(profile: GoogleProfile) {
-    return this.prismaService.user.upsert({
-      where: { email: profile.email },
-      update: {},
-      create: {
-        email: profile.email,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        avatarUrl: profile.picture,
-      },
-    });
+    try {
+      await this.userRepository.upsert(
+        {
+          email: profile.email,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          avatarUrl: profile.picture,
+        },
+        {
+          conflictPaths: ['email'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      );
+
+      return await this.userRepository.findOneOrFail({
+        where: { email: profile.email },
+      });
+    } catch {
+      throw new InternalServerErrorException('Unable to save user data');
+    }
   }
 
   async findById(userId: string) {
-    return this.prismaService.user.findUnique({
-      where: { id: userId },
-    });
+    try {
+      return this.userRepository.findOneOrFail({
+        where: { id: userId },
+      });
+    } catch {
+      throw new NotFoundException('User not found');
+    }
   }
 
-  async revokeAllSessions(userId: string) {
-    await this.prismaService.user.update({
-      where: { id: userId },
-      data: {
-        tokenVersion: { increment: 1 },
-      },
-    });
-
-    await this.prismaService.session.updateMany({
-      where: { userId },
-      data: { isRevoked: true },
+  async revokeAllTokens(userId: string) {
+    await this.dataSource.transaction(async (manager) => {
+      await manager.increment(User, { id: userId }, 'tokenVersion', 1);
+      await manager.update(UserToken, { userId }, { isRevoked: true });
     });
   }
 }

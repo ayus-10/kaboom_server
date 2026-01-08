@@ -1,14 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL } from './constants';
-import { User } from 'generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prismaService: PrismaService,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async verifyRefreshToken(token: string) {
@@ -40,18 +43,22 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string) {
-    const payload = await this.verifyRefreshToken(refreshToken);
+    try {
+      const payload = await this.verifyRefreshToken(refreshToken);
 
-    const user = await this.prismaService.user.findUnique({
-      where: { id: payload.sub },
-    });
+      const user = await this.userRepository.findOneOrFail({
+        where: { id: payload.sub },
+      });
 
-    if (!user || user.tokenVersion !== payload.tokenVersion) {
-      throw new UnauthorizedException('Token revoked or user not found');
+      if (user.tokenVersion !== payload.tokenVersion) {
+        throw new UnauthorizedException('Token revoked');
+      }
+
+      // TODO: implement refresh token rotation here (revoke old, create new token)
+
+      return this.issueTokens(user);
+    } catch {
+      throw new UnauthorizedException('User token not found');
     }
-
-    // TODO: implement refresh token rotation here (revoke old, create new session)
-
-    return this.issueTokens(user);
   }
 }

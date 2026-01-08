@@ -10,12 +10,18 @@ export class UserController {
 
   @Get('me')
   async getMe(@Req() req: JwtAuthRequest) {
-    return this.userService.findById(req.user.userId);
+    const { createdAt, updatedAt, tokens, tokenVersion, ...userData } =
+      await this.userService.findById(req.user.userId);
+
+    return userData;
   }
 
-  @Post('logout')
-  async logoutEverywhere(@Req() req: JwtAuthRequest) {
-    await this.userService.revokeAllSessions(req.user.userId);
+  // TODO: add logout route
+
+  @Post('logout-all')
+  async logoutAll(@Req() req: JwtAuthRequest) {
+    await this.userService.revokeAllTokens(req.user.userId);
+
     return { success: true };
   }
 }
