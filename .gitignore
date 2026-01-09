@@ -84,7 +84,6 @@ dmypy.json
 
 # env files
 .env
-.env.*
 
 # macOS
 .DS_Store
