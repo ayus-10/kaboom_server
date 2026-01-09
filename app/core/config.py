@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    APP_NAME: str
+    DEBUG: bool = False
     DATABASE_URL: str
 
     GOOGLE_CLIENT_ID: str

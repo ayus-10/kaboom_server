@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from urllib.parse import urlencode
-from app.modules.auth.auth_service import AuthService
-from app.modules.auth.google_oauth import (
+from app.features.auth.auth_service import AuthService
+from app.features.auth.google_oauth import (
     exchange_code_for_id_token,
     verify_google_id_token,
 )

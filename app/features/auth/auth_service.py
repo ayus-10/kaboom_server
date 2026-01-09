@@ -3,7 +3,7 @@ from app.core.tokens import (
     create_refresh_token,
 )
 
-# from app.modules.users.user_service import UserService
+# from app.features.users.user_service import UserService
 
 
 class AuthService:
