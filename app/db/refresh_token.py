@@ -26,12 +26,12 @@ class RefreshToken(Base):
     expires_at: Mapped[datetime]
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.now(UTC)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.now(UTC),
-        onupdate=datetime.now(UTC),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     user: Mapped["User"] = relationship(back_populates="refresh_tokens")
