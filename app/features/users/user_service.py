@@ -20,10 +20,10 @@ class UserService:
             result = await self.db.execute(select(User).where(User.id == user_id))
             user = result.scalars().first()
             if not user:
-                raise UserNotFoundError(f"User not found")
+                raise UserNotFoundError("User not found")
             return user
         except Exception as e:
-            raise UserServiceError(f"Unknown error while getting user") from e
+            raise UserServiceError("Unknown error while getting user") from e
 
     async def get_or_create_google_user(
         self,
@@ -47,7 +47,6 @@ class UserService:
                 avatar_url=avatar_url,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
-                token_version=0,
             )
 
             self.db.add(new_user)
@@ -56,4 +55,13 @@ class UserService:
             return new_user
 
         except Exception as e:
-            raise UserServiceError(f"Unknown error while creating user") from e
+            raise UserServiceError("Unknown error while creating user") from e
+
+    async def invalidate_all_refresh_tokens(self, user_id: str) -> None:
+        try:
+            await self.db.execute(
+                delete(RefreshToken).where(RefreshToken.user_id == user_id)
+            )
+            await self.db.commit()
+        except Exception as e:
+            raise UserServiceError("Unknown error while deleting refresh tokens") from e

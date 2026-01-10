@@ -18,7 +18,24 @@ class AuthService:
             avatar_url=google_payload.picture,
         )
 
+        access_token = create_access_token(str(user.id))
+        refresh_token = create_refresh_token(str(user.id))
+
         return {
-            "access_token": create_access_token(str(user.id)),
-            "refresh_token": create_refresh_token(str(user.id)),
+            "access_token": access_token,
+            "refresh_token": refresh_token,
         }
+
+    async def invalidate_all_refresh_tokens(self, user_id: str):
+        await self.user_service.invalidate_all_refresh_tokens(user_id)
+
+    def set_refresh_token_cookie(self, response: Response, refresh_token: str):
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=7 * 24 * 60 * 60,
+            path="/",
+        )

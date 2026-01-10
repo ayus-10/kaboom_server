@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.responses import RedirectResponse
 from urllib.parse import urlencode
 
@@ -7,6 +7,7 @@ from app.features.auth.google_oauth import (
     exchange_code_for_id_token,
     verify_google_id_token,
 )
+from app.core.security import get_current_user_id
 from app.core.constants import GOOGLE_OAUTH_AUTH_URL
 from app.core.config import settings
 from app.features.auth.dependencies import get_auth_service
@@ -32,6 +33,7 @@ async def google_login():
 
 @router.get("/google/callback")
 async def google_callback(
+    response: Response,
     code: str,
     auth_service: AuthService = Depends(get_auth_service),
 ):
@@ -42,7 +44,10 @@ async def google_callback(
             token_data.id_token, token_data.access_token
         )
 
-        return await auth_service.login_with_google(payload)
+        tokens = await auth_service.login_with_google(payload)
+        auth_service.set_refresh_token_cookie(response, tokens["refresh_token"])
+
+        return {"access_token": tokens["access_token"]}
 
     except OAuthExchangeError:
         raise HTTPException(
@@ -55,6 +60,21 @@ async def google_callback(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
         )
 
+    except (UserServiceError, Exception):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
+@router.post("/logout-all")
+async def logout_all(
+    user_id: str = Depends(get_current_user_id),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    try:
+        await auth_service.invalidate_all_refresh_tokens(user_id)
+        return {"detail": "Logged out from all devices"}
     except (UserServiceError, Exception):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

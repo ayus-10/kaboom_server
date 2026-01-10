@@ -13,7 +13,6 @@ class User(Base):
     first_name: Mapped[str | None]
     last_name: Mapped[str | None]
     avatar_url: Mapped[str | None]
-    token_version: Mapped[int] = mapped_column(Integer, default=0)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow
