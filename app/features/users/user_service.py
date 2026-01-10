@@ -56,12 +56,3 @@ class UserService:
 
         except Exception as e:
             raise UserServiceError("Unknown error while creating user") from e
-
-    async def invalidate_all_refresh_tokens(self, user_id: str) -> None:
-        try:
-            await self.db.execute(
-                delete(RefreshToken).where(RefreshToken.user_id == user_id)
-            )
-            await self.db.commit()
-        except Exception as e:
-            raise UserServiceError("Unknown error while deleting refresh tokens") from e

@@ -48,7 +48,8 @@ async def google_callback(
             token_data.id_token, token_data.access_token
         )
 
-        tokens = await auth_service.login_with_google(payload)
+        tokens = await auth_service.login_with_google(google_payload=payload)
+
         auth_service.set_refresh_token_cookie(response, tokens["refresh_token"])
 
         return {"access_token": tokens["access_token"]}
@@ -79,7 +80,7 @@ async def logout_all(
     try:
         await auth_service.invalidate_all_refresh_tokens(user_id)
         return {"detail": "Logged out from all devices"}
-    except (UserServiceError, Exception):
+    except (AuthServiceError, Exception):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",

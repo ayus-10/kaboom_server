@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from jose import jwt
 from app.core.config import settings
+from app.core.constants import ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_SECONDS
 
 
 def create_access_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
         "type": "access",
-        "exp": datetime.utcnow()
-        + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS),
+        "exp": datetime.utcnow() + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS),
     }
     return jwt.encode(payload, settings.JWT_SECRET, settings.JWT_ALGORITHM)
 
@@ -17,8 +17,7 @@ def create_refresh_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
         "type": "refresh",
-        "exp": datetime.utcnow()
-        + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRE_SECONDS),
+        "exp": datetime.utcnow() + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
     }
     return jwt.encode(payload, settings.JWT_SECRET, settings.JWT_ALGORITHM)
 

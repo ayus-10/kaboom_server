@@ -12,8 +12,6 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_SECONDS: int = 900
-    REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 30
 
     class Config:
         env_file = ".env"
