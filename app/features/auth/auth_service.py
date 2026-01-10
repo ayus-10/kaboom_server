@@ -30,7 +30,7 @@ class AuthService:
         tokens = self._generate_token_pair(str(user.id))
         await self._save_refresh_token(
             user_id=str(user.id),
-            refresh_token=tokens["refresh_token"],
+            refresh_token=tokens.refresh_token,
         )
 
         return tokens

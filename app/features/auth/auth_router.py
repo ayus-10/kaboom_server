@@ -52,9 +52,9 @@ async def google_callback(
 
         tokens = await auth_service.login_with_google(google_payload=payload)
 
-        auth_service.set_refresh_token_cookie(response, tokens["refresh_token"])
+        auth_service.set_refresh_token_cookie(response, tokens.refresh_token)
 
-        return {"access_token": tokens["access_token"]}
+        return {"access_token": tokens.access_token}
 
     except OAuthExchangeError:
         raise HTTPException(

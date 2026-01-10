@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel, EmailStr
 
 
 class AuthTokenPair(BaseModel):
@@ -17,7 +17,7 @@ class GooglePayload(BaseModel):
     email_verified: bool
     at_hash: Optional[str]
     name: Optional[str]
-    picture: Optional[HttpUrl]
+    picture: Optional[str]
     given_name: Optional[str]
     family_name: Optional[str]
     iat: int
