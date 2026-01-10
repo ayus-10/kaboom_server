@@ -44,19 +44,19 @@ async def google_callback(
 
         return await auth_service.login_with_google(payload)
 
-    except OAuthExchangeError as e:
+    except OAuthExchangeError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Failed to exchange authorization code",
         )
 
-    except TokenVerificationError as e:
+    except TokenVerificationError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
         )
 
-    except (UserServiceError, Exception) as e:
+    except (UserServiceError, Exception):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        ) from e
+        )
