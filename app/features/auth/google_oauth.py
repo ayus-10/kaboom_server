@@ -1,8 +1,10 @@
-import httpx
 import logging
+
+import httpx
 from jose import jwt
+
 from app.core.config import settings
-from app.core.constants import GOOGLE_OAUTH_TOKEN_URL, GOOGLE_OAUTH_CERTS_URL
+from app.core.constants import GOOGLE_OAUTH_CERTS_URL, GOOGLE_OAUTH_TOKEN_URL
 from app.features.auth.auth_schema import GooglePayload, GoogleTokenResponse
 from app.features.auth.exceptions import OAuthExchangeError, TokenVerificationError
 

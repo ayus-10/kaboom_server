@@ -1,20 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from fastapi.responses import RedirectResponse
 from urllib.parse import urlencode
 
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.responses import RedirectResponse
+
+from app.core.config import settings
+from app.core.constants import GOOGLE_OAUTH_AUTH_URL
+from app.core.security import get_current_user_id
 from app.features.auth.auth_service import AuthService
+from app.features.auth.dependencies import get_auth_service
+from app.features.auth.exceptions import (
+    AuthServiceError,
+    OAuthExchangeError,
+    TokenVerificationError,
+)
 from app.features.auth.google_oauth import (
     exchange_code_for_id_token,
     verify_google_id_token,
-)
-from app.core.security import get_current_user_id
-from app.core.constants import GOOGLE_OAUTH_AUTH_URL
-from app.core.config import settings
-from app.features.auth.dependencies import get_auth_service
-from app.features.auth.exceptions import (
-    OAuthExchangeError,
-    TokenVerificationError,
-    AuthServiceError,
 )
 from app.features.users.exceptions import UserServiceError
 

@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from app.core.tokens import verify_token
 
 security = HTTPBearer()
@@ -11,7 +12,7 @@ async def get_current_user_id(
     token = credentials.credentials
     try:
         payload = verify_token(token, "access")
-        user_id: str = payload.get("sub")
+        user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

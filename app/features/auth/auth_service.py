@@ -1,15 +1,16 @@
-import uuid
 import hashlib
-from datetime import datetime, timedelta
+import uuid
+from datetime import UTC, datetime, timedelta
+
 from fastapi import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.refresh_token import RefreshToken
+from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
 from app.core.tokens import create_access_token, create_refresh_token
-from app.features.auth.auth_schema import GooglePayload, AuthTokenPair
-from app.features.users.user_service import UserService
+from app.db.refresh_token import RefreshToken
+from app.features.auth.auth_schema import AuthTokenPair, GooglePayload
 from app.features.auth.exceptions import AuthServiceError
-from app.core.constants import ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_SECONDS
+from app.features.users.user_service import UserService
 
 
 class AuthService:
@@ -81,7 +82,7 @@ class AuthService:
                 refresh_token_hash=token_hash,
                 is_revoked=False,
                 ip_address=ip_address,
-                expires_at=datetime.utcnow()
+                expires_at=datetime.now(UTC)
                 + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
             )
 

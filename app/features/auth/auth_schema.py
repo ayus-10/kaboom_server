@@ -1,5 +1,6 @@
-from pydantic import BaseModel, HttpUrl, EmailStr
 from typing import Optional
+
+from pydantic import BaseModel, EmailStr, HttpUrl
 
 
 class AuthTokenPair(BaseModel):

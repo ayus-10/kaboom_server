@@ -1,8 +1,11 @@
+from datetime import UTC, datetime
 from typing import List
-from sqlalchemy import String, Integer, DateTime
+
+from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+
 from app.db.base import Base
+from app.db.refresh_token import RefreshToken
 
 
 class User(Base):
@@ -15,12 +18,12 @@ class User(Base):
     avatar_url: Mapped[str | None]
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow
+        DateTime(timezone=True), default=datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=datetime.now(UTC),
+        onupdate=datetime.now(UTC),
     )
 
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
