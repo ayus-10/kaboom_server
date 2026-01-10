@@ -1,0 +1,7 @@
+{
+  "typeCheckingMode": "strict",
+  "reportMissingImports": true,
+  "reportUndefinedVariable": true,
+  "reportUnusedVariable": true,
+  "exclude": ["**/alembic/**", "**/__pycache__/**"]
+}
