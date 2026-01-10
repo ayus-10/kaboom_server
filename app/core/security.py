@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.core.tokens import verify_token
+from app.core.tokens import verify_access_token
 
 security = HTTPBearer()
 
@@ -11,7 +11,7 @@ async def get_current_user_id(
 ) -> str:
     token = credentials.credentials
     try:
-        payload = verify_token(token, "access")
+        payload = verify_access_token(token)
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(
