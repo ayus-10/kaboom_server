@@ -2,6 +2,11 @@ from pydantic import BaseModel, HttpUrl, EmailStr
 from typing import Optional
 
 
+class AuthTokenPair(BaseModel):
+    refresh_token: str
+    access_token: str
+
+
 class GooglePayload(BaseModel):
     iss: str
     azp: str

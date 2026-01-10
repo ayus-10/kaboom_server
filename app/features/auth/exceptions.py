@@ -4,3 +4,7 @@ class OAuthExchangeError(Exception):
 
 class TokenVerificationError(Exception):
     pass
+
+
+class AuthServiceError(Exception):
+    pass

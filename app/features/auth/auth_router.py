@@ -11,7 +11,11 @@ from app.core.security import get_current_user_id
 from app.core.constants import GOOGLE_OAUTH_AUTH_URL
 from app.core.config import settings
 from app.features.auth.dependencies import get_auth_service
-from app.features.auth.exceptions import OAuthExchangeError, TokenVerificationError
+from app.features.auth.exceptions import (
+    OAuthExchangeError,
+    TokenVerificationError,
+    AuthServiceError,
+)
 from app.features.users.exceptions import UserServiceError
 
 router = APIRouter()
@@ -60,7 +64,7 @@ async def google_callback(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
         )
 
-    except (UserServiceError, Exception):
+    except (UserServiceError, AuthServiceError, Exception):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
