@@ -62,17 +62,12 @@ class AuthService:
             raise
 
     async def invalidate_all_refresh_tokens(self, user_id: str) -> None:
-        try:
-            await self.db.execute(
-                update(RefreshToken)
-                .where(RefreshToken.user_id == user_id)
-                .values(is_revoked=True)
-            )
-            await self.db.commit()
-        except Exception as e:
-            raise AuthServiceError(
-                "Unknown error while invalidating refresh tokens"
-            ) from e
+        await self.db.execute(
+            update(RefreshToken)
+            .where(RefreshToken.user_id == user_id)
+            .values(is_revoked=True)
+        )
+        await self.db.commit()
 
     def set_refresh_token_cookie(self, response: Response, refresh_token: str) -> None:
         response.set_cookie(
