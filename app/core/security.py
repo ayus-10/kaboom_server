@@ -13,7 +13,7 @@ async def get_current_user_id(
     try:
         payload = verify_access_token(token)
         user_id = payload.get("sub")
-        if user_id is None:
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token: missing user ID",

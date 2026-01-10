@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
@@ -10,6 +10,7 @@ from app.features.auth.auth_service import AuthService
 from app.features.auth.dependencies import get_auth_service
 from app.features.auth.exceptions import (
     AuthServiceError,
+    InvalidRefreshTokenError,
     OAuthExchangeError,
     TokenVerificationError,
 )
@@ -73,14 +74,50 @@ async def google_callback(
         )
 
 
+@router.post("/logout")
+async def logout(
+    response: Response,
+    user_id: str = Depends(get_current_user_id),
+    auth_service: AuthService = Depends(get_auth_service),
+    refresh_token: str | None = Cookie(None),
+):
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No refresh token found",
+        )
+
+    try:
+        await auth_service.invalidate_refresh_token(user_id, refresh_token)
+        auth_service.delete_refresh_token_cookie(response)
+
+        return {"detail": "Logged out successfully"}
+
+    except InvalidRefreshTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid refresh token",
+        )
+
+    except (AuthServiceError, Exception):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
 @router.post("/logout-all")
 async def logout_all(
+    response: Response,
     user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
 ):
     try:
         await auth_service.invalidate_all_refresh_tokens(user_id)
+        auth_service.delete_refresh_token_cookie(response)
+
         return {"detail": "Logged out from all devices"}
+
     except (AuthServiceError, Exception):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

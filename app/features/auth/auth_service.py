@@ -3,14 +3,14 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import Response
-from sqlalchemy import update
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
 from app.core.tokens import create_access_token, create_refresh_token
 from app.db.refresh_token import RefreshToken
 from app.features.auth.auth_schema import AuthTokenPair, GooglePayload
-from app.features.auth.exceptions import AuthServiceError
+from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
 from app.features.users.user_service import UserService
 
 
@@ -34,6 +34,32 @@ class AuthService:
         )
 
         return tokens
+
+    async def invalidate_refresh_token(self, user_id: str, refresh_token: str) -> None:
+        try:
+            token_hash = self._get_token_hash(refresh_token)
+
+            token_obj_query = await self.db.execute(
+                select(RefreshToken).where(
+                    (RefreshToken.refresh_token_hash == token_hash)
+                    & (RefreshToken.user_id == user_id)
+                    & (not RefreshToken.is_revoked)
+                )
+            )
+            token_obj = token_obj_query.scalar_one_or_none()
+
+            if not token_obj:
+                raise InvalidRefreshTokenError("Refresh token invalid")
+
+            await self.db.execute(
+                update(RefreshToken)
+                .where(RefreshToken.refresh_token_hash == token_hash)
+                .values(is_revoked=True)
+            )
+            await self.db.commit()
+
+        except InvalidRefreshTokenError:
+            raise
 
     async def invalidate_all_refresh_tokens(self, user_id: str) -> None:
         try:
@@ -59,6 +85,15 @@ class AuthService:
             path="/",
         )
 
+    def delete_refresh_token_cookie(self, response: Response) -> None:
+        response.delete_cookie(
+            key="refresh_token",
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            path="/",
+        )
+
     def _generate_token_pair(self, user_id: str) -> AuthTokenPair:
         try:
             return {
@@ -75,7 +110,7 @@ class AuthService:
         ip_address: str | None = None,
     ) -> None:
         try:
-            token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
+            token_hash = self._get_token_hash(refresh_token)
 
             new_refresh_token = RefreshToken(
                 id=str(uuid.uuid4()),
@@ -92,3 +127,6 @@ class AuthService:
 
         except Exception as e:
             raise AuthServiceError("Error saving refresh token") from e
+
+    def _get_token_hash(self, token: str) -> str:
+        return hashlib.sha256(token.encode()).hexdigest()

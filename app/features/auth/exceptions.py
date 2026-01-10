@@ -8,3 +8,7 @@ class TokenVerificationError(Exception):
 
 class AuthServiceError(Exception):
     pass
+
+
+class InvalidRefreshTokenError(AuthServiceError):
+    pass
