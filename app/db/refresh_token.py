@@ -1,12 +1,14 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import (
-    String,
     Boolean,
     DateTime,
     ForeignKey,
+    String,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
-from .base import Base
+
+from app.db.base import Base
 
 
 class RefreshToken(Base):
@@ -24,12 +26,12 @@ class RefreshToken(Base):
     expires_at: Mapped[datetime]
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.utcnow
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     user: Mapped["User"] = relationship(back_populates="refresh_tokens")

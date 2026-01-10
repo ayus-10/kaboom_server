@@ -10,10 +10,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
 
-    JWT_SECRET: str
-    JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_SECONDS: int = 900
-    REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 30
+    ACCESS_TOKEN_SECRET: str
+    REFRESH_TOKEN_SECRET: str
 
     class Config:
         env_file = ".env"

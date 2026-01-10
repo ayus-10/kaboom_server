@@ -1,34 +1,45 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+
 from jose import jwt
+
 from app.core.config import settings
+from app.core.constants import (
+    ACCESS_TOKEN_EXPIRE_SECONDS,
+    JWT_ALGORITHM,
+    REFRESH_TOKEN_EXPIRE_SECONDS,
+)
+from app.core.schema import TokenPayload
 
 
 def create_access_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
-        "type": "access",
-        "exp": datetime.utcnow()
-        + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS),
+        "exp": datetime.now(UTC) + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS),
     }
-    return jwt.encode(payload, settings.JWT_SECRET, settings.JWT_ALGORITHM)
+    return jwt.encode(payload, settings.ACCESS_TOKEN_SECRET, JWT_ALGORITHM)
 
 
 def create_refresh_token(user_id: str) -> str:
     payload = {
         "sub": user_id,
-        "type": "refresh",
-        "exp": datetime.utcnow()
-        + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRE_SECONDS),
+        "exp": datetime.now(UTC) + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
     }
-    return jwt.encode(payload, settings.JWT_SECRET, settings.JWT_ALGORITHM)
+    return jwt.encode(payload, settings.REFRESH_TOKEN_SECRET, JWT_ALGORITHM)
 
 
-def verify_token(token: str, token_type: str) -> dict:
+def verify_access_token(token: str) -> TokenPayload:
     payload = jwt.decode(
         token,
-        settings.JWT_SECRET,
-        algorithms=[settings.JWT_ALGORITHM],
+        settings.ACCESS_TOKEN_SECRET,
+        algorithms=[JWT_ALGORITHM],
     )
-    if payload.get("type") != token_type:
-        raise ValueError("Invalid token type")
+    return payload
+
+
+def verify_refresh_token(token: str) -> TokenPayload:
+    payload = jwt.decode(
+        token,
+        settings.REFRESH_TOKEN_SECRET,
+        algorithms=[JWT_ALGORITHM],
+    )
     return payload

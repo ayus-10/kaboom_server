@@ -1,24 +1,127 @@
-from app.core.tokens import (
-    create_access_token,
-    create_refresh_token,
-)
+import hashlib
+import uuid
+from datetime import UTC, datetime, timedelta
 
-# from app.features.users.user_service import UserService
+from fastapi import Response
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
+from app.core.tokens import create_access_token, create_refresh_token
+from app.db.refresh_token import RefreshToken
+from app.features.auth.auth_schema import AuthTokenPair, GooglePayload
+from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
+from app.features.users.user_service import UserService
 
 
 class AuthService:
-    # def __init__(self, user_service: UserService):
-    #     self.user_service = user_service
+    def __init__(self, db: AsyncSession, user_service: UserService):
+        self.db = db
+        self.user_service = user_service
 
-    async def login_with_google(self, google_payload: dict):
-        # user = await self.user_service.get_or_create_google_user(
-        #     google_id=google_payload["sub"],
-        #     email=google_payload["email"],
-        #     name=google_payload.get("name"),
-        #     avatar=google_payload.get("picture"),
-        # )
+    async def login_with_google(self, google_payload: GooglePayload) -> AuthTokenPair:
+        user = await self.user_service.get_or_create_google_user(
+            email=google_payload.email,
+            first_name=google_payload.given_name,
+            last_name=google_payload.family_name,
+            avatar_url=google_payload.picture,
+        )
 
-        return {
-            "access_token": create_access_token(str(google_payload["sub"])),
-            "refresh_token": create_refresh_token(str(google_payload["sub"])),
-        }
+        tokens = self._generate_token_pair(str(user.id))
+        await self._save_refresh_token(
+            user_id=str(user.id),
+            refresh_token=tokens.refresh_token,
+        )
+
+        return tokens
+
+    async def invalidate_refresh_token(self, user_id: str, refresh_token: str) -> None:
+        try:
+            token_hash = self._get_token_hash(refresh_token)
+
+            token_obj_query = await self.db.execute(
+                select(RefreshToken).where(
+                    (RefreshToken.refresh_token_hash == token_hash)
+                    & (RefreshToken.user_id == user_id)
+                    & (not RefreshToken.is_revoked)
+                )
+            )
+            token_obj = token_obj_query.scalar_one_or_none()
+
+            if not token_obj:
+                raise InvalidRefreshTokenError("Refresh token invalid")
+
+            await self.db.execute(
+                update(RefreshToken)
+                .where(RefreshToken.refresh_token_hash == token_hash)
+                .values(is_revoked=True)
+            )
+            await self.db.commit()
+
+        except InvalidRefreshTokenError:
+            raise
+
+    async def invalidate_all_refresh_tokens(self, user_id: str) -> None:
+        await self.db.execute(
+            update(RefreshToken)
+            .where(RefreshToken.user_id == user_id)
+            .values(is_revoked=True)
+        )
+        await self.db.commit()
+
+    def set_refresh_token_cookie(self, response: Response, refresh_token: str) -> None:
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=REFRESH_TOKEN_EXPIRE_SECONDS,
+            path="/",
+        )
+
+    def delete_refresh_token_cookie(self, response: Response) -> None:
+        response.delete_cookie(
+            key="refresh_token",
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            path="/",
+        )
+
+    def _generate_token_pair(self, user_id: str) -> AuthTokenPair:
+        try:
+            return {
+                "access_token": create_access_token(user_id),
+                "refresh_token": create_refresh_token(user_id),
+            }
+        except Exception as e:
+            raise AuthServiceError("Error generating tokens") from e
+
+    async def _save_refresh_token(
+        self,
+        user_id: str,
+        refresh_token: str,
+        ip_address: str | None = None,
+    ) -> None:
+        try:
+            token_hash = self._get_token_hash(refresh_token)
+
+            new_refresh_token = RefreshToken(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                refresh_token_hash=token_hash,
+                is_revoked=False,
+                ip_address=ip_address,
+                expires_at=datetime.now(UTC)
+                + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
+            )
+
+            self.db.add(new_refresh_token)
+            await self.db.commit()
+
+        except Exception as e:
+            raise AuthServiceError("Error saving refresh token") from e
+
+    def _get_token_hash(self, token: str) -> str:
+        return hashlib.sha256(token.encode()).hexdigest()
