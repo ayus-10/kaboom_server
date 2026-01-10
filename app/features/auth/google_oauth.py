@@ -3,10 +3,11 @@ import logging
 from jose import jwt
 from app.core.config import settings
 from app.core.constants import GOOGLE_OAUTH_TOKEN_URL, GOOGLE_OAUTH_CERTS_URL
-from .exceptions import OAuthExchangeError, TokenVerificationError
+from app.features.auth.auth_schema import GooglePayload, GoogleTokenResponse
+from app.features.auth.exceptions import OAuthExchangeError, TokenVerificationError
 
 
-async def exchange_code_for_id_token(code: str) -> dict:
+async def exchange_code_for_id_token(code: str) -> GoogleTokenResponse:
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.post(
@@ -28,7 +29,7 @@ async def exchange_code_for_id_token(code: str) -> dict:
             raise OAuthExchangeError("Failed to exchange code for token") from e
 
 
-async def verify_google_id_token(id_token: str, access_token: str) -> dict:
+async def verify_google_id_token(id_token: str, access_token: str) -> GooglePayload:
     try:
         async with httpx.AsyncClient() as client:
             certs_resp = await client.get(GOOGLE_OAUTH_CERTS_URL, timeout=10.0)

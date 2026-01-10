@@ -4,8 +4,8 @@ import logging
 
 from app.core.config import settings
 from app.core.database import engine
-from app.features.auth.auth_controller import router as auth_router
-from app.features.users.user_controller import router as user_router
+from app.features.auth.auth_router import router as auth_router
+from app.features.users.user_router import router as user_router
 
 
 @asynccontextmanager

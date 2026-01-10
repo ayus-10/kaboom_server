@@ -8,7 +8,7 @@ from app.features.auth.google_oauth import (
 )
 from app.core.constants import GOOGLE_OAUTH_AUTH_URL
 from app.core.config import settings
-from .exceptions import OAuthExchangeError, TokenVerificationError
+from app.features.auth.exceptions import OAuthExchangeError, TokenVerificationError
 
 router = APIRouter()
 
@@ -35,10 +35,9 @@ async def google_callback(
     try:
         token_data = await exchange_code_for_id_token(code)
 
-        id_token = token_data["id_token"]
-        access_token = token_data["access_token"]
-
-        payload = await verify_google_id_token(id_token, access_token)
+        payload = await verify_google_id_token(
+            token_data.id_token, token_data.access_token
+        )
 
         return await auth_service.login_with_google(payload)
 
