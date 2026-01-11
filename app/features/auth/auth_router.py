@@ -1,3 +1,5 @@
+import logging
+import traceback
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -22,6 +24,7 @@ from app.features.users.exceptions import UserServiceError
 
 router = APIRouter()
 
+logger = logging.getLogger(__name__)
 
 @router.get("/google")
 async def google_login():
@@ -67,7 +70,44 @@ async def google_callback(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
         )
 
-    except (UserServiceError, AuthServiceError, Exception):
+    except (UserServiceError, AuthServiceError, Exception) as e:
+        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+@router.post("/rotate")
+async def rotate_tokens(
+    response: Response,
+    user_id: str = Depends(get_current_user_id),
+    auth_service: AuthService = Depends(get_auth_service),
+    refresh_token: str | None = Cookie(None),
+):
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No refresh token found",
+        )
+
+    try:
+        tokens = await auth_service.rotate_auth_tokens(
+            user_id=user_id,
+            refresh_token=refresh_token,
+        )
+
+        auth_service.set_refresh_token_cookie(response, tokens.refresh_token)
+
+        return {"access_token": tokens.access_token}
+
+    except InvalidRefreshTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        )
+
+    except (AuthServiceError, Exception) as e:
+        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
@@ -95,11 +135,12 @@ async def logout(
 
     except InvalidRefreshTokenError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
         )
 
-    except (AuthServiceError, Exception):
+    except (AuthServiceError, Exception) as e:
+        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
@@ -118,7 +159,8 @@ async def logout_all(
 
         return {"detail": "Logged out from all devices"}
 
-    except Exception:
+    except Exception as e:
+        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",

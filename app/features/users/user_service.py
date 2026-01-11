@@ -1,5 +1,4 @@
 import uuid
-from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +22,7 @@ class UserService:
                 raise UserNotFoundError("User not found")
             return user
         except Exception as e:
-            raise UserServiceError("Unknown error while getting user") from e
+            raise UserServiceError("Error while getting user") from e
 
     async def get_or_create_google_user(
         self,
@@ -45,8 +44,6 @@ class UserService:
                 first_name=first_name,
                 last_name=last_name,
                 avatar_url=avatar_url,
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
             )
 
             self.db.add(new_user)
@@ -55,4 +52,4 @@ class UserService:
             return new_user
 
         except Exception as e:
-            raise UserServiceError("Unknown error while creating user") from e
+            raise UserServiceError("Error while creating user") from e

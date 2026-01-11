@@ -33,7 +33,7 @@ def verify_access_token(token: str) -> TokenPayload:
         settings.ACCESS_TOKEN_SECRET,
         algorithms=[JWT_ALGORITHM],
     )
-    return payload
+    return TokenPayload(**payload)
 
 
 def verify_refresh_token(token: str) -> TokenPayload:
@@ -42,4 +42,4 @@ def verify_refresh_token(token: str) -> TokenPayload:
         settings.REFRESH_TOKEN_SECRET,
         algorithms=[JWT_ALGORITHM],
     )
-    return payload
+    return TokenPayload(**payload)

@@ -1,6 +1,6 @@
-from typing import TypedDict
+from pydantic import BaseModel
 
 
-class TokenPayload(TypedDict):
+class TokenPayload(BaseModel):
     sub: str
     exp: int

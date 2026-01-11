@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import (
     Boolean,
@@ -8,6 +8,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
 from app.db.base import Base
 
 
@@ -23,10 +24,15 @@ class RefreshToken(Base):
     refresh_token_hash: Mapped[str]
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
     ip_address: Mapped[str | None]
-    expires_at: Mapped[datetime]
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC) + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS)
+    )
+
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
