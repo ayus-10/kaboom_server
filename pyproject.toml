@@ -29,7 +29,7 @@ target-version = "py311"
 line-length = 100
 select = ["E", "F", "I"]
 ignore = []
-exclude = ["alembic/versions/**"]
+exclude = ["alembic/**"]
 
 [tool.ruff.per-file-ignores]
 "alembic/**" = ["E501"]
