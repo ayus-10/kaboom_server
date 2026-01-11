@@ -1,5 +1,6 @@
 import hashlib
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import Response
 from sqlalchemy import select, update
@@ -34,20 +35,30 @@ class AuthService:
 
         return tokens
 
+    async def rotate_auth_tokens(self, user_id: str, refresh_token: str) -> AuthTokenPair:
+        try:
+            token_hash = self._get_token_hash(refresh_token)
+
+            is_token_valid = await self._verify_refresh_token(
+                user_id=user_id,
+                token_hash=token_hash,
+            )
+            if not is_token_valid:
+                raise InvalidRefreshTokenError("Refresh token invalid")
+
+        except InvalidRefreshTokenError:
+            raise
+
     async def invalidate_refresh_token(self, user_id: str, refresh_token: str) -> None:
         try:
             token_hash = self._get_token_hash(refresh_token)
 
-            token_obj_query = await self.db.execute(
-                select(RefreshToken).where(
-                    (RefreshToken.refresh_token_hash == token_hash)
-                    & (RefreshToken.user_id == user_id)
-                    & (not RefreshToken.is_revoked)
-                )
+            is_token_valid = await self._verify_refresh_token(
+                user_id=user_id,
+                token_hash=token_hash,
+                verify_expiry=False
             )
-            token_obj = token_obj_query.scalar_one_or_none()
-
-            if not token_obj:
+            if not is_token_valid:
                 raise InvalidRefreshTokenError("Refresh token invalid")
 
             await self.db.execute(
@@ -123,3 +134,28 @@ class AuthService:
 
     def _get_token_hash(self, token: str) -> str:
         return hashlib.sha256(token.encode()).hexdigest()
+
+    async def _verify_refresh_token(
+        self,
+        user_id: str,
+        token_hash: str,
+        verify_expiry: bool = True
+    ) -> bool:
+        token_obj_query = await self.db.execute(
+            select(RefreshToken).where(
+                (RefreshToken.refresh_token_hash == token_hash)
+                & (RefreshToken.user_id == user_id)
+                & (~RefreshToken.is_revoked)
+            )
+        )
+        token_obj = token_obj_query.scalar_one_or_none()
+
+        if not token_obj:
+            return False
+
+        is_expired = token_obj.expires_at <= datetime.now(UTC)
+
+        if verify_expiry and is_expired:
+            return False
+
+        return True
