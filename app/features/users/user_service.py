@@ -1,5 +1,4 @@
 import uuid
-from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,8 +44,6 @@ class UserService:
                 first_name=first_name,
                 last_name=last_name,
                 avatar_url=avatar_url,
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
             )
 
             self.db.add(new_user)

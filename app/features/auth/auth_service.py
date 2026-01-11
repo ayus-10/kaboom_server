@@ -1,6 +1,5 @@
 import hashlib
 import uuid
-from datetime import UTC, datetime, timedelta
 
 from fastapi import Response
 from sqlalchemy import select, update
@@ -114,8 +113,6 @@ class AuthService:
                 refresh_token_hash=token_hash,
                 is_revoked=False,
                 ip_address=ip_address,
-                expires_at=datetime.now(UTC)
-                + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
             )
 
             self.db.add(new_refresh_token)
