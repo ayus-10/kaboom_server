@@ -5,12 +5,8 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
-
 from app.core.config import settings
 from app.db.base import Base
-
-from app.db.user import User
-from app.db.refresh_token import RefreshToken
 
 config = context.config
 

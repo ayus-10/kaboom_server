@@ -48,7 +48,7 @@ async def verify_google_id_token(id_token: str, access_token: str) -> GooglePayl
             audience=settings.GOOGLE_CLIENT_ID,
             access_token=access_token,
         )
-        return payload
+        return GooglePayload(**payload)
 
     except Exception as e:
         logging.error(f"Error verifying ID token: {e}", exc_info=True)

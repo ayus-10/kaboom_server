@@ -91,10 +91,11 @@ class AuthService:
 
     def _generate_token_pair(self, user_id: str) -> AuthTokenPair:
         try:
-            return {
+            token_pair = {
                 "access_token": create_access_token(user_id),
                 "refresh_token": create_refresh_token(user_id),
             }
+            return AuthTokenPair(**token_pair)
         except Exception as e:
             raise AuthServiceError("Error generating tokens") from e
 
