@@ -48,17 +48,16 @@ class AuthService:
 
             token_pair = self._generate_token_pair(user_id)
 
-            async with self.db.begin():
-                await self.db.execute(
-                    update(RefreshToken)
-                    .where(RefreshToken.refresh_token_hash == token_hash)
-                    .values(is_revoked=True)
-                )
+            await self.db.execute(
+                update(RefreshToken)
+                .where(RefreshToken.refresh_token_hash == token_hash)
+                .values(is_revoked=True)
+            )
 
-                await self._save_refresh_token(
-                    user_id=user_id,
-                    refresh_token=token_pair.refresh_token
-                )
+            await self._save_refresh_token(
+                user_id=user_id,
+                refresh_token=token_pair.refresh_token
+            )
 
             return token_pair
 
