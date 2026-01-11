@@ -23,7 +23,7 @@ class UserService:
                 raise UserNotFoundError("User not found")
             return user
         except Exception as e:
-            raise UserServiceError("Unknown error while getting user") from e
+            raise UserServiceError("Error while getting user") from e
 
     async def get_or_create_google_user(
         self,
@@ -55,4 +55,4 @@ class UserService:
             return new_user
 
         except Exception as e:
-            raise UserServiceError("Unknown error while creating user") from e
+            raise UserServiceError("Error while creating user") from e

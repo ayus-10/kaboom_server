@@ -24,7 +24,8 @@ async def exchange_code_for_id_token(code: str) -> GoogleTokenResponse:
                 timeout=10.0,
             )
             resp.raise_for_status()
-            return resp.json()
+            data = resp.json()
+            return GoogleTokenResponse(**data)
 
         except Exception as e:
             logging.error(f"Error exchanging code for token: {e}", exc_info=True)

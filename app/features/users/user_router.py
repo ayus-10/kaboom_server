@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id
 from app.features.users.dependencies import get_user_service
-from app.features.users.exceptions import UserNotFoundError, UserServiceError
+from app.features.users.exceptions import UserServiceError
 from app.features.users.user_service import UserService
 
 router = APIRouter()
@@ -22,7 +22,7 @@ async def get_me(
             "last_name": user.last_name,
             "avatar_url": user.avatar_url,
         }
-    except (UserNotFoundError, UserServiceError):
+    except UserServiceError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Please log in to continue",
