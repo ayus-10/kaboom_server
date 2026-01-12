@@ -3,7 +3,7 @@
   "reportMissingImports": true,
   "reportUndefinedVariable": true,
   "reportUnusedVariable": true,
-  "exclude": ["**/alembic/**", "**/__pycache__/**"],
+  "exclude": ["**/alembic/**", "**/__pycache__/**", "**/.venv"],
   "venvPath": ".",
   "venv": ".venv",
 }
