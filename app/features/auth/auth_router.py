@@ -20,7 +20,7 @@ from app.features.auth.google_oauth import (
     exchange_code_for_id_token,
     verify_google_id_token,
 )
-from app.features.users.exceptions import UserServiceError
+from app.features.user.exceptions import UserServiceError
 
 router = APIRouter()
 

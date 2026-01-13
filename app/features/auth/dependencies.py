@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.features.auth.auth_service import AuthService
-from app.features.users.user_service import UserService
+from app.features.user.user_service import UserService
 
 
 def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:

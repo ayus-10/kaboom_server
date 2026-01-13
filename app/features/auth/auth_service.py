@@ -11,7 +11,7 @@ from app.core.tokens import create_access_token, create_refresh_token
 from app.db.refresh_token import RefreshToken
 from app.features.auth.auth_schema import AuthTokenPair, GooglePayload
 from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
-from app.features.users.user_service import UserService
+from app.features.user.user_service import UserService
 
 
 class AuthService:
