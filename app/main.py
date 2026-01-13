@@ -42,11 +42,7 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(project_router, prefix="/project", tags=["project"])
-app.include_router(
-    widget_router,
-    prefix="/project/{project_id}/widgets",
-    tags=["widgets"]
-)
+app.include_router(widget_router, prefix="/widget", tags=["widget"])
 
 
 @app.exception_handler(Exception)

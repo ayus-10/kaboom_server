@@ -1,6 +1,7 @@
-import uuid
 from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
+from pydantic import HttpUrl
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,9 +17,9 @@ class WidgetService:
 
     async def create_widget(
         self,
-        project_id: str,
+        project_id: UUID,
         user_id: str,
-        site_url: str,
+        site_url: HttpUrl,
         title: str,
         description: str | None,
     ) -> Widget:
@@ -36,7 +37,7 @@ class WidgetService:
             raise WidgetAccessDenied()
 
         widget = Widget(
-            id=str(uuid.uuid4()),
+            id=str(uuid4()),
             project_id=project_id,
             title=title,
             description=description,
@@ -96,12 +97,13 @@ class WidgetService:
         self,
         widget_id: str,
         user_id: str,
-        new_title: str ,
-        new_description: str | None = None,
+        new_title: str | None,
+        new_description: str | None,
     ) -> Widget:
         widget = await self.get_widget(widget_id, user_id)
 
-        widget.title = new_title
+        if new_title:
+            widget.title = new_title
         widget.description = new_description
 
         await self.db.commit()

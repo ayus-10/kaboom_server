@@ -15,9 +15,9 @@ router = APIRouter()
 async def create_project(
     data: ProjectCreate,
     user_id: str = Depends(get_current_user_id),
-    service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service)
 ):
-    project = await service.create_project(
+    project = await project_service.create_project(
         owner_id=user_id,
         title=data.title,
         description=data.description,
@@ -28,10 +28,10 @@ async def create_project(
 async def get_project(
     project_id: str,
     user_id: str = Depends(get_current_user_id),
-    service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service)
 ):
     try:
-        project = await service.get_project(project_id, user_id)
+        project = await project_service.get_project(project_id, user_id)
         return project
     except ProjectNotFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
@@ -41,10 +41,10 @@ async def update_project(
     project_id: str,
     data: ProjectUpdate,
     user_id: str = Depends(get_current_user_id),
-    service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service)
 ):
     try:
-        project = await service.update_project(
+        project = await project_service.update_project(
             project_id=project_id,
             user_id=user_id,
             new_title=data.title,
@@ -59,10 +59,10 @@ async def update_project(
 async def delete_project(
     project_id: str,
     user_id: str = Depends(get_current_user_id),
-    service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service)
 ):
     try:
-        await service.delete_project(project_id, user_id)
+        await project_service.delete_project(project_id, user_id)
         return None
 
     except ProjectNotFound:
@@ -71,7 +71,7 @@ async def delete_project(
 @router.get("/", response_model=List[ProjectOut])
 async def list_projects(
     user_id: str = Depends(get_current_user_id),
-    service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service)
 ):
-    projects = await service.get_all_projects(user_id)
+    projects = await project_service.get_all_projects(user_id)
     return projects
