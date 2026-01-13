@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -8,9 +8,6 @@ from app.db.base import Base
 
 class Widget(Base):
     __tablename__ = "widgets"
-    __table_args__ = (
-        UniqueConstraint("slug", name="uq_widget_slug"),
-    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     project_id: Mapped[str] = mapped_column(
@@ -18,7 +15,6 @@ class Widget(Base):
         index=True
     )
 
-    slug: Mapped[str] = mapped_column(String(100))
     site_url: Mapped[str] = mapped_column(String(500))
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(String, nullable=True)

@@ -6,6 +6,3 @@ class WidgetNotFound(WidgetServiceError):
 
 class WidgetAccessDenied(WidgetServiceError):
     pass
-
-class WidgetSlugAlreadyExists(WidgetServiceError):
-    pass
