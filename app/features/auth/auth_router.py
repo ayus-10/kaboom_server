@@ -1,5 +1,3 @@
-import logging
-import traceback
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -22,7 +20,6 @@ from app.features.auth.google_oauth import (
 
 router = APIRouter()
 
-logger = logging.getLogger(__name__)
 
 @router.get("/google")
 async def google_login():
@@ -68,12 +65,6 @@ async def google_callback(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
         )
 
-    except Exception as e:
-        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
 
 @router.post("/rotate")
 async def rotate_tokens(
@@ -104,13 +95,6 @@ async def rotate_tokens(
             detail="Invalid refresh token",
         )
 
-    except Exception as e:
-        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
 
 @router.post("/logout")
 async def logout(
@@ -137,13 +121,6 @@ async def logout(
             detail="Invalid refresh token",
         )
 
-    except Exception as e:
-        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
 
 @router.post("/logout-all")
 async def logout_all(
@@ -151,15 +128,7 @@ async def logout_all(
     user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    try:
-        await auth_service.invalidate_all_refresh_tokens(user_id)
-        auth_service.delete_refresh_token_cookie(response)
+    await auth_service.invalidate_all_refresh_tokens(user_id)
+    auth_service.delete_refresh_token_cookie(response)
 
-        return {"detail": "Logged out from all devices"}
-
-    except Exception as e:
-        logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+    return {"detail": "Logged out from all devices"}
