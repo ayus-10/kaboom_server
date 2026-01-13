@@ -11,7 +11,6 @@ from app.core.security import get_current_user_id
 from app.features.auth.auth_service import AuthService
 from app.features.auth.dependencies import get_auth_service
 from app.features.auth.exceptions import (
-    AuthServiceError,
     InvalidRefreshTokenError,
     OAuthExchangeError,
     TokenVerificationError,
@@ -20,7 +19,6 @@ from app.features.auth.google_oauth import (
     exchange_code_for_id_token,
     verify_google_id_token,
 )
-from app.features.user.exceptions import UserServiceError
 
 router = APIRouter()
 
@@ -70,7 +68,7 @@ async def google_callback(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
         )
 
-    except (UserServiceError, AuthServiceError, Exception) as e:
+    except Exception as e:
         logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -106,7 +104,7 @@ async def rotate_tokens(
             detail="Invalid refresh token",
         )
 
-    except (AuthServiceError, Exception) as e:
+    except Exception as e:
         logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -139,7 +137,7 @@ async def logout(
             detail="Invalid refresh token",
         )
 
-    except (AuthServiceError, Exception) as e:
+    except Exception as e:
         logger.error(f"An unknown exception occurred: {e}\n{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
