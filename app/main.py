@@ -6,7 +6,9 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.core.database import engine
 from app.features.auth.auth_router import router as auth_router
+from app.features.project.project_router import router as project_router
 from app.features.user.user_router import router as user_router
+from app.features.widget.widget_router import router as widget_router
 
 
 @asynccontextmanager
@@ -35,7 +37,14 @@ app = FastAPI(
 )
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(user_router, prefix="/users", tags=["users"])
+app.include_router(user_router, prefix="/user", tags=["user"])
+app.include_router(project_router, prefix="/project", tags=["project"])
+app.include_router(
+    widget_router,
+    prefix="/project/{project_id}/widgets",
+    tags=["widgets"]
+)
+
 
 
 @app.get("/health", tags=["infra"])

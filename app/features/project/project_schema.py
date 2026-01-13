@@ -22,3 +22,12 @@ class ProjectUpdate(BaseModel):
         if v is not None:
             return v.strip()
         return v
+
+class ProjectOut(BaseModel):
+    id: str
+    owner_id: str
+    title: str
+    description: str | None
+
+    class Config:
+        orm_mode = True

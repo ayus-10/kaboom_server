@@ -72,12 +72,13 @@ class ProjectService:
         self,
         project_id: str,
         user_id: str,
-        new_title: str,
+        new_title: str | None,
         new_description: str | None,
     ) -> Project:
         project = await self.get_project(project_id, user_id)
 
-        project.title = new_title
+        if new_title:
+            project.title = new_title
         project.description = new_description
 
         await self.db.commit()

@@ -3,6 +3,3 @@ class ProjectServiceError(Exception):
 
 class ProjectNotFound(ProjectServiceError):
     pass
-
-class ProjectAccessDenied(ProjectServiceError):
-    pass
