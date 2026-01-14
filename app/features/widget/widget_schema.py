@@ -1,5 +1,4 @@
 from typing import Optional
-from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
@@ -8,7 +7,6 @@ class WidgetCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=2000)
     site_url: HttpUrl
-    project_id: UUID
 
     @field_validator("title", mode="before")
     @classmethod

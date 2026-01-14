@@ -15,7 +15,7 @@ logger = logging.getLogger()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     logging.info("Starting application")
 
     try:
@@ -42,7 +42,11 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(project_router, prefix="/project", tags=["project"])
-app.include_router(widget_router, prefix="/widget", tags=["widget"])
+app.include_router(
+    widget_router,
+    prefix="/project/{project_id}/widget",
+    tags=["widget"]
+)
 
 
 @app.exception_handler(Exception)

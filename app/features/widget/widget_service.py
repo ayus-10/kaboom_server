@@ -77,7 +77,7 @@ class WidgetService:
     async def get_all_widgets_for_project(
         self,
         user_id: str,
-        project_id: str,
+        project_id: UUID,
     ) -> list[Widget]:
         result = await self.db.execute(
             select(Widget)

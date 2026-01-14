@@ -1,6 +1,7 @@
 from typing import List
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from app.core.security import get_current_user_id
 from app.features.widget.dependencies import get_widget_service
@@ -14,12 +15,13 @@ router = APIRouter()
 @router.post("/", response_model=WidgetOut, status_code=status.HTTP_201_CREATED)
 async def create_widget(
     data: WidgetCreate,
+    project_id: UUID = Path(...),
     user_id: str = Depends(get_current_user_id),
     widget_service: WidgetService = Depends(get_widget_service),
 ):
     try:
         widget = await widget_service.create_widget(
-            project_id=data.project_id,
+            project_id=project_id,
             user_id=user_id,
             title=data.title,
             description=data.description,
@@ -76,10 +78,11 @@ async def delete_widget(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not found")
 
 
-# @router.get("/", response_model=List[WidgetOut])
-# async def list_widgets(
-#     user_id: str = Depends(get_current_user_id),
-#     widget_service: WidgetService = Depends(get_widget_service),
-# ):
-#     widgets = await widget_service.get_all_widgets_for_project(user_id)
-#     return widgets
+@router.get("/", response_model=List[WidgetOut])
+async def get_widgets(
+    user_id: str = Depends(get_current_user_id),
+    widget_service: WidgetService = Depends(get_widget_service),
+    project_id: UUID = Path(...)
+):
+    widgets = await widget_service.get_all_widgets_for_project(user_id, project_id)
+    return widgets
