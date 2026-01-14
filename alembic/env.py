@@ -11,6 +11,9 @@ from app.db.base import Base
 
 from app.db.user import User # type: ignore
 from app.db.refresh_token import RefreshToken # type: ignore
+from app.db.widget import Widget # type: ignore
+from app.db.project import Project # type: ignore
+
 
 config = context.config
 

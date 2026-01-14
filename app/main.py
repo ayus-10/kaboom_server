@@ -1,16 +1,21 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import engine
 from app.features.auth.auth_router import router as auth_router
-from app.features.users.user_router import router as user_router
+from app.features.project.project_router import router as project_router
+from app.features.user.user_router import router as user_router
+from app.features.widget.widget_router import router as widget_router
+
+logger = logging.getLogger()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     logging.info("Starting application")
 
     try:
@@ -35,7 +40,22 @@ app = FastAPI(
 )
 
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(user_router, prefix="/users", tags=["users"])
+app.include_router(user_router, prefix="/user", tags=["user"])
+app.include_router(project_router, prefix="/project", tags=["project"])
+app.include_router(
+    widget_router,
+    prefix="/project/{project_id}/widget",
+    tags=["widget"]
+)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(_request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
 
 
 @app.get("/health", tags=["infra"])

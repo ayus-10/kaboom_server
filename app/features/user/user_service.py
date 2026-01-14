@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.user import User
-from app.features.users.exceptions import (
+from app.features.user.exceptions import (
     UserNotFoundError,
     UserServiceError,
 )

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id
-from app.features.users.dependencies import get_user_service
-from app.features.users.exceptions import UserServiceError
-from app.features.users.user_service import UserService
+from app.features.user.dependencies import get_user_service
+from app.features.user.exceptions import UserServiceError
+from app.features.user.user_service import UserService
 
 router = APIRouter()
 

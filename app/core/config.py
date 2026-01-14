@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     APP_NAME: str
-    DEBUG: bool = False
+    DEBUG: bool
     DATABASE_URL: str
 
     GOOGLE_CLIENT_ID: str
