@@ -1,12 +1,13 @@
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, List
 
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.db.actor import Actor
     from app.db.refresh_token import RefreshToken
 
 
@@ -18,6 +19,11 @@ class User(Base):
     first_name: Mapped[str | None]
     last_name: Mapped[str | None]
     avatar_url: Mapped[str | None]
+
+    actor_id: Mapped[str] = mapped_column(
+        ForeignKey("actors.id"),
+        unique=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
@@ -32,3 +38,5 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    actor: Mapped["Actor"] = relationship()

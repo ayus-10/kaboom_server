@@ -19,13 +19,9 @@ class Message(Base):
         index=True,
     )
 
-    sender_visitor_id: Mapped[str | None] = mapped_column(
-        ForeignKey("visitors.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-    sender_user_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True,
+    sender_actor_id: Mapped[str] = mapped_column(
+        ForeignKey("actors.id"),
+        index=True,
     )
 
     content: Mapped[str] = mapped_column(String)
