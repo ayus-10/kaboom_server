@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -10,6 +11,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.db.user import User
 
 
 class RefreshToken(Base):
