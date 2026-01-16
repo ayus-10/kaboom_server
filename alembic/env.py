@@ -13,6 +13,11 @@ from app.db.user import User # type: ignore
 from app.db.refresh_token import RefreshToken # type: ignore
 from app.db.widget import Widget # type: ignore
 from app.db.project import Project # type: ignore
+from app.db.conversation import Conversation # type: ignore
+from app.db.pending_conversation import PendingConversation # type: ignore
+from app.db.message import Message # type: ignore
+from app.db.visitor import Visitor # type: ignore
+from app.db.actor import Actor # type: ignore
 
 
 config = context.config

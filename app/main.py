@@ -7,8 +7,12 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.database import engine
 from app.features.auth.auth_router import router as auth_router
+from app.features.pending_conversation.pending_conversation_router import (
+    router as pending_conversation_router,
+)
 from app.features.project.project_router import router as project_router
 from app.features.user.user_router import router as user_router
+from app.features.visitor.visitor_router import router as visitor_router
 from app.features.widget.widget_router import router as widget_router
 
 logger = logging.getLogger()
@@ -42,8 +46,14 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(project_router, prefix="/project", tags=["project"])
+app.include_router(visitor_router, prefix="/visitor", tags=["visitor"])
 app.include_router(
     widget_router,
+    prefix="/pending-conversation",
+    tags=["pending-conversation"]
+)
+app.include_router(
+    pending_conversation_router,
     prefix="/project/{project_id}/widget",
     tags=["widget"]
 )

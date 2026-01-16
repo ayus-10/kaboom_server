@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -8,17 +8,16 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.db.actor import Actor
-    from app.db.refresh_token import RefreshToken
+    from app.db.conversation import Conversation
+    from app.db.pending_conversation import PendingConversation
 
-
-class User(Base):
-    __tablename__ = "users"
+class Visitor(Base):
+    __tablename__ = "visitors"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    first_name: Mapped[str | None]
-    last_name: Mapped[str | None]
-    avatar_url: Mapped[str | None]
+
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     actor_id: Mapped[str] = mapped_column(
         ForeignKey("actors.id"),
@@ -26,17 +25,17 @@ class User(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
-    )
-    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
-        onupdate=lambda: datetime.now(UTC),
     )
 
-    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
-        back_populates="user",
+    pending_conversations: Mapped[list["PendingConversation"]] = relationship(
+        back_populates="visitor",
         cascade="all, delete-orphan",
+    )
+
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="visitor"
     )
 
     actor: Mapped["Actor"] = relationship()
