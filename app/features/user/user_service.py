@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.actor import Actor
 from app.db.user import User
 from app.features.user.exceptions import (
     UserNotFoundError,
@@ -38,17 +39,26 @@ class UserService:
             if user:
                 return user
 
+            new_actor = Actor(
+                id=str(uuid.uuid4()),
+                type="user",
+            )
+            self.db.add(new_actor)
+            await self.db.flush()
+
             new_user = User(
                 id=str(uuid.uuid4()),
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
                 avatar_url=avatar_url,
+                actor_id=new_actor.id,
             )
 
             self.db.add(new_user)
             await self.db.commit()
             await self.db.refresh(new_user)
+
             return new_user
 
         except Exception as e:

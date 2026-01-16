@@ -3,12 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.core.security import get_current_user_id
 from app.features.user.dependencies import get_user_service
 from app.features.user.exceptions import UserServiceError
+from app.features.user.user_schema import UserRead
 from app.features.user.user_service import UserService
 
 router = APIRouter()
 
 
-@router.get("/me")
+@router.get("/me", response_model=UserRead)
 async def get_me(
     user_id: str = Depends(get_current_user_id),
     user_service: UserService = Depends(get_user_service),
