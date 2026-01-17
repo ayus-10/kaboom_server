@@ -57,5 +57,8 @@ async def get_pending_conversation(
 ):
     pc = await pc_service.get_pending_conversation(pc_id)
     if not pc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pending conversation not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pending conversation not found"
+        )
     return pc

@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -16,9 +16,9 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    first_name: Mapped[str | None]
-    last_name: Mapped[str | None]
-    avatar_url: Mapped[str | None]
+    first_name: Mapped[Optional[str]]
+    last_name: Mapped[Optional[str]]
+    avatar_url: Mapped[Optional[str]]
 
     actor_id: Mapped[str] = mapped_column(
         ForeignKey("actors.id"),

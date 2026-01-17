@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -25,9 +25,12 @@ class PendingConversation(Base):
         default=lambda: datetime.now(UTC),
     )
 
-    visitor: Mapped["Visitor"] = relationship(back_populates="pending_conversations")
+    accepted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+    )
 
-    conversation: Mapped["Conversation | None"] = relationship(
+    visitor: Mapped["Visitor"] = relationship(back_populates="pending_conversations")
+    conversation: Mapped[Optional["Conversation"]] = relationship(
         back_populates="pending_conversation",
         uselist=False,
     )

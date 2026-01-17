@@ -1,11 +1,11 @@
 import uuid
 from datetime import UTC, datetime
 
-from app.db.conversation import Conversation
-from app.db.pending_conversation import PendingConversation
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.conversation import Conversation
+from app.db.pending_conversation import PendingConversation
 from app.features.conversation.exceptions import ConversationServiceError
 
 

@@ -128,7 +128,6 @@ class AuthService:
         self,
         user_id: str,
         refresh_token: str,
-        ip_address: str | None = None,
     ) -> None:
         try:
             token_hash = self._get_token_hash(refresh_token)
@@ -138,7 +137,6 @@ class AuthService:
                 user_id=user_id,
                 refresh_token_hash=token_hash,
                 is_revoked=False,
-                ip_address=ip_address,
             )
 
             self.db.add(new_refresh_token)
