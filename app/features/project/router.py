@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.core.security import get_current_user_id
 from app.features.project.dependencies import get_project_service
 from app.features.project.exceptions import ProjectNotFound
-from app.features.project.project_schema import ProjectCreate, ProjectOut, ProjectUpdate
-from app.features.project.project_service import ProjectService
+from app.features.project.schema import ProjectCreate, ProjectOut, ProjectUpdate
+from app.features.project.service import ProjectService
 
 router = APIRouter()
 

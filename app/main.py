@@ -6,16 +6,16 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import engine
-from app.features.auth.auth_router import router as auth_router
-from app.features.conversation.conversation_router import router as conversation_router
-from app.features.message.message_router import router as message_router
-from app.features.pending_conversation.pending_conversation_router import (
+from app.features.auth.router import router as auth_router
+from app.features.conversation.router import router as conversation_router
+from app.features.message.router import router as message_router
+from app.features.pending_conversation.router import (
     router as pending_conversation_router,
 )
-from app.features.project.project_router import router as project_router
-from app.features.user.user_router import router as user_router
-from app.features.visitor.visitor_router import router as visitor_router
-from app.features.widget.widget_router import router as widget_router
+from app.features.project.router import router as project_router
+from app.features.user.router import router as user_router
+from app.features.visitor.router import router as visitor_router
+from app.features.widget.router import router as widget_router
 
 logger = logging.getLogger()
 

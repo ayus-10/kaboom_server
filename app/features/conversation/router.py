@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id
-from app.features.conversation.conversation_schema import ConversationRead
-from app.features.conversation.conversation_service import ConversationService
 from app.features.conversation.dependencies import get_conversation_service
 from app.features.conversation.exceptions import (
     ConversationAlreadyExistsError,
@@ -10,6 +8,8 @@ from app.features.conversation.exceptions import (
     ConversationNotFoundError,
     PendingConversationNotFoundError,
 )
+from app.features.conversation.schema import ConversationRead
+from app.features.conversation.service import ConversationService
 
 router = APIRouter()
 

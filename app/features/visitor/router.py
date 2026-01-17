@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status
 
 from app.core.security import get_current_user_id as require_admin_user
 from app.features.visitor.dependencies import get_visitor_service
-from app.features.visitor.visitor_schema import VisitorCreate, VisitorRead
-from app.features.visitor.visitor_service import VisitorService
+from app.features.visitor.schema import VisitorCreate, VisitorRead
+from app.features.visitor.service import VisitorService
 
 router = APIRouter()
 

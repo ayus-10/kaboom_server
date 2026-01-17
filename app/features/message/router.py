@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 from app.core.security import get_current_user_id
 from app.features.message.dependencies import get_message_service
 from app.features.message.exceptions import MessageAuthorizationError
-from app.features.message.message_schema import MessageCreate, MessageRead
-from app.features.message.message_service import MessageService
+from app.features.message.schema import MessageCreate, MessageRead
+from app.features.message.service import MessageService
 
 router = APIRouter()
 

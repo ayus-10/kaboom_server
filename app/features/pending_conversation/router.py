@@ -5,8 +5,8 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, status
 from app.core.security import get_current_user_id as require_admin_user
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
 from app.features.pending_conversation.exceptions import InvalidVisitorIDError
-from app.features.pending_conversation.pending_conversation_schema import PendingConversationRead
-from app.features.pending_conversation.pending_conversation_service import (
+from app.features.pending_conversation.schema import PendingConversationRead
+from app.features.pending_conversation.service import (
     PendingConversationService,
 )
 

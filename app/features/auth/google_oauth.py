@@ -5,8 +5,8 @@ from jose import jwt
 
 from app.core.config import settings
 from app.core.constants import GOOGLE_OAUTH_CERTS_URL, GOOGLE_OAUTH_TOKEN_URL
-from app.features.auth.auth_schema import GooglePayload, GoogleTokenResponse
 from app.features.auth.exceptions import OAuthExchangeError, TokenVerificationError
+from app.features.auth.schema import GooglePayload, GoogleTokenResponse
 
 
 async def exchange_code_for_id_token(code: str) -> GoogleTokenResponse:
