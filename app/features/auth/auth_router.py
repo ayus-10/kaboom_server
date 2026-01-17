@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -71,7 +72,7 @@ async def rotate_tokens(
     response: Response,
     user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
-    refresh_token: str | None = Cookie(None),
+    refresh_token: Optional[str] = Cookie(None),
 ):
     if not refresh_token:
         raise HTTPException(
@@ -101,7 +102,7 @@ async def logout(
     response: Response,
     user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
-    refresh_token: str | None = Cookie(None),
+    refresh_token: Optional[str] = Cookie(None),
 ):
     if not refresh_token:
         raise HTTPException(

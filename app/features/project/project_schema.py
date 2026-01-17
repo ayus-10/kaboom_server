@@ -27,7 +27,7 @@ class ProjectOut(BaseModel):
     id: str
     owner_id: str
     title: str
-    description: str | None
+    description: Optional[str]
 
     class Config:
         orm_mode = True

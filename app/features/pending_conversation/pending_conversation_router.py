@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, status
 
@@ -19,7 +19,7 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
 )
 async def create_pending_conversation(
-    visitor_id: str | None = Cookie(default=None),
+    visitor_id: Optional[str] = Cookie(default=None),
     pc_service: PendingConversationService = Depends(get_pending_conversation_service),
 ):
     if not visitor_id:

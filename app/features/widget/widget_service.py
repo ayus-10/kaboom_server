@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import HttpUrl
@@ -21,7 +22,7 @@ class WidgetService:
         user_id: str,
         site_url: HttpUrl,
         title: str,
-        description: str | None,
+        description: Optional[str],
     ) -> Widget:
         result = await self.db.execute(
             select(Project)
@@ -97,8 +98,8 @@ class WidgetService:
         self,
         widget_id: str,
         user_id: str,
-        new_title: str | None,
-        new_description: str | None,
+        new_title: Optional[str],
+        new_description: Optional[str],
     ) -> Widget:
         widget = await self.get_widget(widget_id, user_id)
 

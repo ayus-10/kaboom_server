@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,9 +29,9 @@ class UserService:
     async def get_or_create_google_user(
         self,
         email: str,
-        first_name: str | None,
-        last_name: str | None,
-        avatar_url: str | None,
+        first_name: Optional[str],
+        last_name: Optional[str],
+        avatar_url: Optional[str],
     ) -> User:
         try:
             result = await self.db.execute(select(User).where(User.email == email))
