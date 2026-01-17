@@ -1,35 +1,15 @@
-from typing import List, Optional
+from typing import List
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id as require_admin_user
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
-from app.features.pending_conversation.exceptions import InvalidVisitorIDError
 from app.features.pending_conversation.schema import PendingConversationRead
 from app.features.pending_conversation.service import (
     PendingConversationService,
 )
 
 router = APIRouter()
-
-
-@router.post(
-    "",
-    response_model=PendingConversationRead,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_pending_conversation(
-    visitor_id: Optional[str] = Cookie(default=None),
-    pc_service: PendingConversationService = Depends(get_pending_conversation_service),
-):
-    if not visitor_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Visitor ID missing")
-
-    try:
-        pc = await pc_service.create_pending_conversation(visitor_id)
-        return pc
-    except InvalidVisitorIDError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Visitor ID")
 
 
 @router.get(

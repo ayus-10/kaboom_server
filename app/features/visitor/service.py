@@ -28,6 +28,12 @@ class VisitorService:
         await self.db.refresh(new_visitor)
         return new_visitor
 
+    async def get_visitor(self, visitor_id: str) -> Optional[Visitor]:
+        result = await self.db.execute(
+            select(Visitor).where(Visitor.id == visitor_id)
+        )
+        return result.scalars().first()
+
     async def list_visitors(self) -> list[Visitor]:
         result = await self.db.execute(select(Visitor))
         return list(result.scalars().all())
