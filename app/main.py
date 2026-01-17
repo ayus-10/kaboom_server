@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.database import engine
 from app.features.auth.auth_router import router as auth_router
 from app.features.conversation.conversation_router import router as conversation_router
+from app.features.message.message_router import router as message_router
 from app.features.pending_conversation.pending_conversation_router import (
     router as pending_conversation_router,
 )
@@ -53,6 +54,11 @@ app.include_router(
     widget_router,
     prefix="/pending-conversation",
     tags=["pending-conversation"]
+)
+app.include_router(
+    message_router,
+    prefix="/conversation/{conversation_id}/message",
+    tags=["message"],
 )
 app.include_router(
     pending_conversation_router,

@@ -9,6 +9,7 @@ from app.db.conversation import Conversation
 from app.db.pending_conversation import PendingConversation
 from app.features.conversation.exceptions import (
     ConversationAlreadyExistsError,
+    ConversationAuthorizationError,
     ConversationNotFoundError,
     PendingConversationNotFoundError,
 )
@@ -68,10 +69,13 @@ class ConversationService:
         )
         return list(result.scalars().all())
 
-    async def close_conversation(self, conversation_id: str) -> Conversation:
+    async def close_conversation(self, conversation_id: str, user_id: str) -> Conversation:
         conversation = await self.get_conversation(conversation_id)
         if not conversation:
             raise ConversationNotFoundError()
+
+        if conversation.user_id != user_id:
+            raise ConversationAuthorizationError()
 
         conversation.closed_at = datetime.now(UTC)
         await self.db.commit()

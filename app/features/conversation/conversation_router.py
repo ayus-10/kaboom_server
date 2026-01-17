@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.core.security import (
-    get_current_user_id as require_admin_user,
-)
+from app.core.security import get_current_user_id
 from app.features.conversation.conversation_schema import ConversationRead
 from app.features.conversation.conversation_service import ConversationService
 from app.features.conversation.dependencies import get_conversation_service
 from app.features.conversation.exceptions import (
     ConversationAlreadyExistsError,
+    ConversationAuthorizationError,
     ConversationNotFoundError,
     PendingConversationNotFoundError,
 )
@@ -22,7 +21,7 @@ router = APIRouter()
 async def create_conversation(
     pending_conversation_id: str,
     conversation_service: ConversationService = Depends(get_conversation_service),
-    user_id: str = Depends(require_admin_user),
+    user_id: str = Depends(get_current_user_id),
 ):
     try:
         return await conversation_service.create_from_pending(
@@ -63,7 +62,7 @@ async def get_conversation(
 )
 async def list_conversations(
     conversation_service: ConversationService = Depends(get_conversation_service),
-    user_id: str = Depends(require_admin_user),
+    user_id: str = Depends(get_current_user_id),
 ):
     return await conversation_service.list_conversations(user_id)
 
@@ -71,13 +70,18 @@ async def list_conversations(
     "/{conversation_id}/close",
     response_model=ConversationRead,
     status_code=status.HTTP_200_OK,
-    dependencies=[Depends(require_admin_user)]
 )
 async def close_conversation(
     conversation_id: str,
     conversation_service: ConversationService = Depends(get_conversation_service),
+    user_id: str = Depends(get_current_user_id)
 ):
     try:
-        return await conversation_service.close_conversation(conversation_id)
+        return await conversation_service.close_conversation(conversation_id, user_id)
     except ConversationNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    except ConversationAuthorizationError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized to close the conversation",
+        )

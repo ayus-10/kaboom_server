@@ -9,3 +9,6 @@ class ConversationNotFoundError(ConversationServiceError):
 
 class ConversationAlreadyExistsError(ConversationServiceError):
     pass
+
+class ConversationAuthorizationError(ConversationServiceError):
+    pass
