@@ -1,4 +1,5 @@
-from typing import Any, Literal, TypedDict
+from typing import Any, TypedDict
+
 from pydantic import BaseModel
 
 
@@ -7,11 +8,5 @@ class TokenPayload(BaseModel):
     exp: int
 
 class WSMessage(TypedDict):
-    type: Literal[
-        "pending_conversation.created",
-        "pending_conversation.taken_over",
-        "conversation.closed",
-        "message.received",
-        "conversation.typing",
-    ]
+    type: str
     payload: dict[str, Any]
