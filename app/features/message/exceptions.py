@@ -1,5 +1,5 @@
 class MessageServiceError(Exception):
     pass
 
-class MessageAuthorizationError(MessageServiceError): # suggest a bettername
+class MessageAuthorizationError(MessageServiceError):
     pass
