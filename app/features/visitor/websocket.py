@@ -15,7 +15,7 @@ manager = ConnectionManager()
 
 
 @router.websocket("/ws/visitor")
-async def visitor_pending_conversation_ws(
+async def visitor_ws(
     websocket: WebSocket,
     visitor_service: VisitorService = Depends(get_visitor_service),
     pc_service: PendingConversationService = Depends(get_pending_conversation_service),
@@ -26,7 +26,7 @@ async def visitor_pending_conversation_ws(
     visitor_id = websocket.headers.get("x-visitor-id")
 
     if not visitor_id:
-        visitor = await visitor_service.create_visitor(name=None, email=None)
+        visitor = await visitor_service.create_visitor(name=None, email=None) # TODO: figure this out
         visitor_id = visitor.id
         await websocket.send_json({
             "type": "visitor.created",
