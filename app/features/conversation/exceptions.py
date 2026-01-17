@@ -1,0 +1,2 @@
+class ConversationServiceError(Exception):
+    pass
