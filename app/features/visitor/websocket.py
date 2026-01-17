@@ -1,7 +1,6 @@
 from json import JSONDecodeError
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from fastapi.param_functions import Depends
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.core.websocket_manager import ConnectionManager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
