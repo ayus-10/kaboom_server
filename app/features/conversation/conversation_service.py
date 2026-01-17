@@ -1,12 +1,17 @@
 import uuid
 from datetime import UTC, datetime
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.conversation import Conversation
 from app.db.pending_conversation import PendingConversation
-from app.features.conversation.exceptions import ConversationServiceError
+from app.features.conversation.exceptions import (
+    ConversationAlreadyExistsError,
+    ConversationNotFoundError,
+    PendingConversationNotFoundError,
+)
 
 
 class ConversationService:
@@ -26,15 +31,12 @@ class ConversationService:
         pending = result.scalars().first()
 
         if not pending:
-            raise ConversationServiceError("Pending conversation not found")
+            raise PendingConversationNotFoundError()
 
-        result = await self.db.execute(
-            select(Conversation).where(
-                Conversation.pending_conversation_id == pending_conversation_id
-            )
-        )
-        if result.scalars().first():
-            raise ConversationServiceError("Conversation already created")
+        if pending.accepted_at:
+            raise ConversationAlreadyExistsError()
+
+        pending.accepted_at = datetime.now(UTC)
 
         new_conversation = Conversation(
             id=str(uuid.uuid4()),
@@ -48,7 +50,7 @@ class ConversationService:
         await self.db.refresh(new_conversation)
         return new_conversation
 
-    async def get_conversation(self, conversation_id: str) -> Conversation | None:
+    async def get_conversation(self, conversation_id: str) -> Optional[Conversation]:
         result = await self.db.execute(
             select(Conversation).where(
                 Conversation.id == conversation_id,
@@ -69,7 +71,7 @@ class ConversationService:
     async def close_conversation(self, conversation_id: str) -> Conversation:
         conversation = await self.get_conversation(conversation_id)
         if not conversation:
-            raise ConversationServiceError("Conversation not found")
+            raise ConversationNotFoundError()
 
         conversation.closed_at = datetime.now(UTC)
         await self.db.commit()

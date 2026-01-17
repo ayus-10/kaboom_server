@@ -9,7 +9,7 @@ class ConversationRead(BaseModel):
     visitor_id: str
     user_id: Optional[str]
     created_at: datetime
-    deleted_at: datetime | None
+    deleted_at: Optional[datetime]
 
     class Config:
         from_attributes = True

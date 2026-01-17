@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +32,7 @@ class PendingConversationService:
         result = await self.db.execute(select(PendingConversation))
         return list(result.scalars().all())
 
-    async def get_pending_conversation(self, pc_id: str) -> PendingConversation | None:
+    async def get_pending_conversation(self, pc_id: str) -> Optional[PendingConversation]:
         result = await self.db.execute(
             select(PendingConversation).where(PendingConversation.id == pc_id)
         )
