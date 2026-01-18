@@ -8,6 +8,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.db.actor import Actor
+    from app.db.conversation import Conversation
     from app.db.refresh_token import RefreshToken
 
 
@@ -40,3 +41,8 @@ class User(Base):
     )
 
     actor: Mapped["Actor"] = relationship()
+
+    conversations: Mapped[List["Conversation"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
