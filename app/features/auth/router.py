@@ -53,7 +53,17 @@ async def google_callback(
 
         auth_service.set_refresh_token_cookie(response, tokens.refresh_token)
 
-        return {"access_token": tokens.access_token}
+        redirect_url = (
+            f"{settings.CLIENT_URL}/oauth/callback#"
+            + urlencode({"access_token": tokens.access_token})
+        )
+
+        return RedirectResponse(
+            url=redirect_url,
+            status_code=status.HTTP_302_FOUND,
+            headers=response.headers,
+        )
+
 
     except OAuthExchangeError:
         raise HTTPException(

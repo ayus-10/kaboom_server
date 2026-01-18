@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     APP_NAME: str
     DEBUG: bool
     DATABASE_URL: str
+    CLIENT_URL: str
 
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
