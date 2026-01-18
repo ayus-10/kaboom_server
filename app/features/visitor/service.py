@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,7 @@ class VisitorService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_visitor(self, name: str | None, email: str | None) -> Visitor:
+    async def create_visitor(self, name: Optional[str], email: Optional[str]) -> Visitor:
         new_actor = Actor(id=str(uuid.uuid4()), type="visitor")
         self.db.add(new_actor)
         await self.db.flush()
@@ -26,6 +27,12 @@ class VisitorService:
         await self.db.commit()
         await self.db.refresh(new_visitor)
         return new_visitor
+
+    async def get_visitor(self, visitor_id: str) -> Optional[Visitor]:
+        result = await self.db.execute(
+            select(Visitor).where(Visitor.id == visitor_id)
+        )
+        return result.scalars().first()
 
     async def list_visitors(self) -> list[Visitor]:
         result = await self.db.execute(select(Visitor))

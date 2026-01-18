@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 from app.core.security import get_current_user_id
 from app.features.widget.dependencies import get_widget_service
 from app.features.widget.exceptions import WidgetAccessDenied, WidgetNotFound
-from app.features.widget.widget_schema import WidgetCreate, WidgetOut, WidgetUpdate
-from app.features.widget.widget_service import WidgetService
+from app.features.widget.schema import WidgetCreate, WidgetOut, WidgetUpdate
+from app.features.widget.service import WidgetService
 
 router = APIRouter()
 

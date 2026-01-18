@@ -1,0 +1,44 @@
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.core.security import get_current_user_id as require_admin_user
+from app.features.pending_conversation.dependencies import get_pending_conversation_service
+from app.features.pending_conversation.schema import PendingConversationRead
+from app.features.pending_conversation.service import (
+    PendingConversationService,
+)
+
+router = APIRouter()
+
+
+@router.get(
+    "",
+    response_model=List[PendingConversationRead],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_admin_user)],
+)
+async def list_pending_conversations(
+    pc_service: PendingConversationService = Depends(get_pending_conversation_service),
+):
+    pcs = await pc_service.list_pending_conversations()
+    return pcs
+
+
+@router.get(
+    "/{pc_id}",
+    response_model=PendingConversationRead,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_admin_user)],
+)
+async def get_pending_conversation(
+    pc_id: str,
+    pc_service: PendingConversationService = Depends(get_pending_conversation_service),
+):
+    pc = await pc_service.get_pending_conversation(pc_id)
+    if not pc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pending conversation not found"
+        )
+    return pc

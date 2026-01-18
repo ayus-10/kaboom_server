@@ -34,4 +34,4 @@ class WidgetOut(BaseModel):
     site_url: HttpUrl
 
     class Config:
-        orm_mode = True
+        from_attributes = True

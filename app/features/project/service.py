@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, datetime
+from typing import Optional
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +19,7 @@ class ProjectService:
         self,
         owner_id: str,
         title: str,
-        description: str | None,
+        description: Optional[str],
     ) -> Project:
         project = Project(
             id=str(uuid.uuid4()),
@@ -72,8 +73,8 @@ class ProjectService:
         self,
         project_id: str,
         user_id: str,
-        new_title: str | None,
-        new_description: str | None,
+        new_title: Optional[str],
+        new_description: Optional[str],
     ) -> Project:
         project = await self.get_project(project_id, user_id)
 

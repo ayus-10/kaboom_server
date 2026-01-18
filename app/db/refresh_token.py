@@ -27,7 +27,6 @@ class RefreshToken(Base):
 
     refresh_token_hash: Mapped[str]
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
-    ip_address: Mapped[str | None]
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC) + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS)

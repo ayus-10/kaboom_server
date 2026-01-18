@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -6,7 +7,6 @@ from fastapi.responses import RedirectResponse
 from app.core.config import settings
 from app.core.constants import GOOGLE_OAUTH_AUTH_URL
 from app.core.security import get_current_user_id
-from app.features.auth.auth_service import AuthService
 from app.features.auth.dependencies import get_auth_service
 from app.features.auth.exceptions import (
     InvalidRefreshTokenError,
@@ -17,6 +17,7 @@ from app.features.auth.google_oauth import (
     exchange_code_for_id_token,
     verify_google_id_token,
 )
+from app.features.auth.service import AuthService
 
 router = APIRouter()
 
@@ -71,7 +72,7 @@ async def rotate_tokens(
     response: Response,
     user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
-    refresh_token: str | None = Cookie(None),
+    refresh_token: Optional[str] = Cookie(None),
 ):
     if not refresh_token:
         raise HTTPException(
@@ -101,7 +102,7 @@ async def logout(
     response: Response,
     user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
-    refresh_token: str | None = Cookie(None),
+    refresh_token: Optional[str] = Cookie(None),
 ):
     if not refresh_token:
         raise HTTPException(

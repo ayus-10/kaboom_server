@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,7 +17,7 @@ class Project(Base):
     owner_id: Mapped[str] = mapped_column(String, index=True)
 
     title: Mapped[str] = mapped_column(String(255))
-    description: Mapped[str | None] = mapped_column(String, nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(String)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
@@ -27,9 +27,8 @@ class Project(Base):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    deleted_at: Mapped[datetime | None] = mapped_column(
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
-        nullable=True
     )
 
     widgets: Mapped[list["Widget"]] = relationship(

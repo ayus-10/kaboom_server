@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
 from app.core.tokens import create_access_token, create_refresh_token
 from app.db.refresh_token import RefreshToken
-from app.features.auth.auth_schema import AuthTokenPair, GooglePayload
 from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
-from app.features.user.user_service import UserService
+from app.features.auth.schema import AuthTokenPair, GooglePayload
+from app.features.user.service import UserService
 
 
 class AuthService:
@@ -128,7 +128,6 @@ class AuthService:
         self,
         user_id: str,
         refresh_token: str,
-        ip_address: str | None = None,
     ) -> None:
         try:
             token_hash = self._get_token_hash(refresh_token)
@@ -138,7 +137,6 @@ class AuthService:
                 user_id=user_id,
                 refresh_token_hash=token_hash,
                 is_revoked=False,
-                ip_address=ip_address,
             )
 
             self.db.add(new_refresh_token)
