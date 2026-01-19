@@ -27,7 +27,7 @@ class WidgetService:
         result = await self.db.execute(
             select(Project)
             .where(
-                Project.id == project_id,
+                Project.id == str(project_id),
                 Project.owner_id == user_id,
                 Project.deleted_at.is_(None),
             )
@@ -39,10 +39,10 @@ class WidgetService:
 
         widget = Widget(
             id=str(uuid4()),
-            project_id=project_id,
+            project_id=str(project_id),
             title=title,
             description=description,
-            site_url=site_url
+            site_url=str(site_url)
         )
 
         self.db.add(widget)

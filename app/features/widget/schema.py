@@ -28,7 +28,6 @@ class WidgetUpdate(BaseModel):
 class WidgetOut(BaseModel):
     id: str
     project_id: str
-    slug: str
     title: str
     description: Optional[str] = None
     site_url: HttpUrl
