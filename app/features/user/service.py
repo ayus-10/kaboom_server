@@ -18,7 +18,11 @@ class UserService:
 
     async def get_me(self, user_id: str) -> User:
         try:
-            result = await self.db.execute(select(User).where(User.id == user_id))
+            result = await self.db.execute(
+                select(User)
+                .join(Actor, User.actor_id == Actor.id)
+                .where(User.id == user_id)
+            )
             user = result.scalars().first()
             if not user:
                 raise UserNotFoundError("User not found")
