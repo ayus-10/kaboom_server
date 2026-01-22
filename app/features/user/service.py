@@ -3,6 +3,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.actor import Actor
 from app.db.user import User
@@ -20,7 +21,7 @@ class UserService:
         try:
             result = await self.db.execute(
                 select(User)
-                .join(Actor, User.actor_id == Actor.id)
+                .options(selectinload(User.actor))
                 .where(User.id == user_id)
             )
             user = result.scalars().first()
