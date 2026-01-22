@@ -6,7 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.pending_conversation import PendingConversation
 from app.db.visitor import Visitor
-from app.features.pending_conversation.exceptions import InvalidVisitorIDError
+from app.features.pending_conversation.exceptions import (
+    ExistingPendingConversationError,
+    InvalidVisitorIDError,
+)
 
 
 class PendingConversationService:
@@ -17,7 +20,14 @@ class PendingConversationService:
         result = await self.db.execute(select(Visitor).where(Visitor.id == visitor_id))
         visitor = result.scalars().first()
         if not visitor:
-            raise InvalidVisitorIDError("Visitor not found")
+            raise InvalidVisitorIDError()
+
+        result = await self.db.execute(
+            select(PendingConversation).where(PendingConversation.visitor_id == visitor_id)
+        )
+        existing_pc = result.scalars().first()
+        if existing_pc:
+            raise ExistingPendingConversationError()
 
         new_pc = PendingConversation(
             id=str(uuid.uuid4()),

@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.core.websocket_manager import ConnectionManager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
-from app.features.pending_conversation.exceptions import InvalidVisitorIDError
+from app.features.pending_conversation.exceptions import (
+    ExistingPendingConversationError,
+    InvalidVisitorIDError,
+)
 from app.features.pending_conversation.service import PendingConversationService
 from app.features.visitor.dependencies import get_visitor_service
 from app.features.visitor.service import VisitorService
@@ -25,7 +28,8 @@ async def visitor_ws(
     visitor_id = websocket.query_params.get("visitor_id")
 
     if not visitor_id:
-        visitor = await visitor_service.create_visitor(name=None, email=None) # TODO: figure this out
+        # TODO: figure this out
+        visitor = await visitor_service.create_visitor(name=None, email=None)
         visitor_id = visitor.id
         await websocket.send_json({
             "type": "visitor.created",
@@ -86,6 +90,12 @@ async def visitor_ws(
                     await websocket.send_json({
                         "type": "pending_conversation.created",
                         "payload": {"pending_conversation_id": pending_conversation.id},
+                    })
+
+                except ExistingPendingConversationError:
+                    await websocket.send_json({
+                        "type": "error",
+                        "payload": {"message": "Unable to re-initiate conversation"},
                     })
 
                 except InvalidVisitorIDError:
