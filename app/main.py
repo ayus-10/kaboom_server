@@ -16,6 +16,7 @@ from app.features.pending_conversation.router import (
 from app.features.project.router import router as project_router
 from app.features.user.router import router as user_router
 from app.features.visitor.router import router as visitor_router
+from app.features.visitor.websocket import router as visitor_ws_router
 from app.features.widget.router import router as widget_router
 
 logger = logging.getLogger()
@@ -75,6 +76,8 @@ app.include_router(
     prefix="/pending-conversation",
     tags=["pending-conversation"]
 )
+
+app.include_router(visitor_ws_router)
 
 
 @app.exception_handler(Exception)

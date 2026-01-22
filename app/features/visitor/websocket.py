@@ -22,7 +22,7 @@ async def visitor_ws(
     await websocket.accept()
 
     # Get or create visitor
-    visitor_id = websocket.headers.get("x-visitor-id")
+    visitor_id = websocket.query_params.get("visitor_id")
 
     if not visitor_id:
         visitor = await visitor_service.create_visitor(name=None, email=None) # TODO: figure this out
