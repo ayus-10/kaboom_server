@@ -33,6 +33,7 @@ exclude = ["alembic/**"]
 
 [tool.ruff.lint.per-file-ignores]
 "alembic/**" = ["E501"]
+"app/db/models.py" = ["F401"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
