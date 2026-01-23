@@ -95,7 +95,7 @@ async def visitor_ws(
                 except ExistingPendingConversationError:
                     await websocket.send_json({
                         "type": "error",
-                        "payload": {"message": "Unable to re-initiate conversation"},
+                        "payload": {"message": "Conversation has already been requested"},
                     })
 
                 except InvalidVisitorIDError:

@@ -6,7 +6,7 @@ from fastapi import Response
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
+from app.core.constants import ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_SECONDS
 from app.core.tokens import create_access_token, create_refresh_token
 from app.db.refresh_token import RefreshToken
 from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
@@ -94,7 +94,7 @@ class AuthService:
         )
         await self.db.commit()
 
-    def set_refresh_token_cookie(self, response: Response, refresh_token: str) -> None:
+    def set_token_cookie(self, response: Response, refresh_token: str, access_token: str) -> None:
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
@@ -104,10 +104,26 @@ class AuthService:
             max_age=REFRESH_TOKEN_EXPIRE_SECONDS,
             path="/",
         )
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=ACCESS_TOKEN_EXPIRE_SECONDS,
+            path="/",
+        )
 
-    def delete_refresh_token_cookie(self, response: Response) -> None:
+    def delete_token_cookie(self, response: Response) -> None:
         response.delete_cookie(
             key="refresh_token",
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            path="/",
+        )
+        response.delete_cookie(
+            key="access_token",
             httponly=True,
             secure=True,
             samesite="lax",
