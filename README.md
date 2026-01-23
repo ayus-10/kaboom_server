@@ -1,31 +1,57 @@
-# This App Thingy 🤪
-Ok so like this app is made for putting chat widgets inside other websites and stuff.
+# Kaboom Server
 
-## What It Do?
+This repository contains the backend service for Kaboom. This is an API-only service intended to be used with a separate frontend.
 
-- Visitors come in, maybe say hi or stay sneaky anonymous
-- Visitors make pending convos like “hey I wanna talk”
-- Users (the admin types) grab those pending convos and make real convos happen
-- People talk in convos with messages, yay!
-- Projects are there too but like not really explained here lol
+## Features
 
-## Tech Stuff (I Guess)
+- Visitors can start conversations (anonymous)
+- Conversations begin in a pending state
+- Admin users can accept pending conversations
+- Real-time messaging within conversations
+- Support for multiple projects
+- Multiple admins can be a part of a project
 
-- Python, FastAPI, SQLAlchemy — the fancy backend thingies
-- PostgreSQL or whatever your database is
-- Async stuff to make things fast
-- WebSockets to annoy people with instant messages
-- Some cookies or tokens for keeping track of who’s who
 
-## What’s Missing?
+___
 
-- Maybe a front end? I hope you know how to make one
-- Tests? Nope, just vibes
-- Docs? Yeah no, this readme is it
 
-## How To Run?
+## Setup
+Note: This project uses [Poetry](https://python-poetry.org/) for packaging.
 
-Just run it. Like:
+### To install dependencies, run:
 
 ```bash
-uvicorn app.main:app --reload
+poetry install
+```
+
+___
+
+## Development Commands
+
+### Linting and Type Checking:
+
+```bash
+poetry run ruff check
+poetry run pyright
+```
+
+### Creating database migration:
+
+```bash
+alembic revision --autogenerate -m "migration message"
+```
+
+### Undo the most recent migration:
+```bash
+alembic downgrade -1
+```
+
+### Apply all migrations:
+```bash
+alembic upgrade head
+```
+
+### Running the Server
+```bash
+poetry run uvicorn app.main:app --reload
+```
