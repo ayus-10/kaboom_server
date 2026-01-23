@@ -30,7 +30,7 @@ class WidgetService:
                 Project.id == str(project_id),
                 Project.owner_id == user_id,
                 Project.deleted_at.is_(None),
-            )
+            ),
         )
 
         project = result.scalar_one_or_none()
@@ -42,7 +42,7 @@ class WidgetService:
             project_id=str(project_id),
             title=title,
             description=description,
-            site_url=str(site_url)
+            site_url=str(site_url),
         )
 
         self.db.add(widget)
@@ -64,7 +64,7 @@ class WidgetService:
                 Widget.deleted_at.is_(None),
                 Project.owner_id == user_id,
                 Project.deleted_at.is_(None),
-            )
+            ),
         )
 
         widget = result.scalar_one_or_none()
@@ -89,7 +89,7 @@ class WidgetService:
                 Project.owner_id == user_id,
                 Project.deleted_at.is_(None),
             )
-            .order_by(Widget.title)
+            .order_by(Widget.title),
         )
 
         return list(result.scalars().all())

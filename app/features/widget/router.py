@@ -58,7 +58,7 @@ async def update_widget(
             widget_id=widget_id,
             user_id=user_id,
             new_title=payload.title,
-            new_description=payload.description
+            new_description=payload.description,
         )
         return widget
     except WidgetNotFound:
@@ -82,7 +82,7 @@ async def delete_widget(
 async def get_widgets(
     user_id: str = Depends(get_current_user_id),
     widget_service: WidgetService = Depends(get_widget_service),
-    project_id: UUID = Path(...)
+    project_id: UUID = Path(...),
 ):
     widgets = await widget_service.get_all_widgets_for_project(user_id, project_id)
     return widgets

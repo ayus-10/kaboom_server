@@ -66,17 +66,17 @@ app.include_router(conversation_router, prefix="/conversation", tags=["conversat
 app.include_router(
     widget_router,
     prefix="/project/{project_id}/widget",
-    tags=["widget"]
+    tags=["widget"],
 )
 app.include_router(
     message_router,
     prefix="/conversation/{conversation_id}/message",
-    tags=["message"]
+    tags=["message"],
 )
 app.include_router(
     pending_conversation_router,
     prefix="/pending-conversation",
-    tags=["pending-conversation"]
+    tags=["pending-conversation"],
 )
 
 app.include_router(visitor_ws_router)

@@ -44,8 +44,8 @@ class ProjectService:
             .where(
                 Project.id == project_id,
                 Project.deleted_at.is_(None),
-                Project.owner_id == user_id
-            )
+                Project.owner_id == user_id,
+            ),
         )
         project = result.scalar_one_or_none()
 
@@ -64,7 +64,7 @@ class ProjectService:
                 Project.owner_id == user_id,
                 Project.deleted_at.is_(None),
             )
-            .order_by(Project.title)
+            .order_by(Project.title),
         )
 
         return list(result.scalars().all())
@@ -100,7 +100,7 @@ class ProjectService:
         await self.db.execute(
             update(Widget)
             .where(Widget.project_id == project_id)
-            .values(deleted_at = now)
+            .values(deleted_at = now),
         )
 
         await self.db.commit()

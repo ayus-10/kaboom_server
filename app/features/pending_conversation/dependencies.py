@@ -8,6 +8,6 @@ from app.features.pending_conversation.service import (
 
 
 def get_pending_conversation_service(
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> PendingConversationService:
     return PendingConversationService(db)

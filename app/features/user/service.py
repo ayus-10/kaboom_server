@@ -22,7 +22,7 @@ class UserService:
             result = await self.db.execute(
                 select(User)
                 .options(selectinload(User.actor))
-                .where(User.id == user_id)
+                .where(User.id == user_id),
             )
             user = result.scalars().first()
             if not user:

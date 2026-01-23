@@ -46,7 +46,7 @@ async def google_callback(
         token_data = await exchange_code_for_id_token(code)
 
         payload = await verify_google_id_token(
-            token_data.id_token, token_data.access_token
+            token_data.id_token, token_data.access_token,
         )
 
         tokens = await auth_service.login_with_google(google_payload=payload)
@@ -54,7 +54,7 @@ async def google_callback(
         auth_service.set_token_cookie(
             response=response,
             refresh_token=tokens.refresh_token,
-            access_token=tokens.access_token
+            access_token=tokens.access_token,
         )
 
         redirect_url = (
@@ -77,7 +77,7 @@ async def google_callback(
 
     except TokenVerificationError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token",
         )
 
 

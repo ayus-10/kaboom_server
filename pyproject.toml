@@ -27,8 +27,8 @@ package-mode = false
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-lint.select = ["E", "F", "I"]
-lint.ignore = []
+lint.select = ["E", "F", "I", "COM"]
+lint.ignore = ["COM819"]
 exclude = ["alembic/**"]
 
 [tool.ruff.lint.per-file-ignores]

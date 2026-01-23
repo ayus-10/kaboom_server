@@ -25,7 +25,7 @@ class PendingConversationService:
             raise InvalidVisitorIDError()
 
         result = await self.db.execute(
-            select(PendingConversation).where(PendingConversation.visitor_id == visitor_id)
+            select(PendingConversation).where(PendingConversation.visitor_id == visitor_id),
         )
         existing_pc = result.scalars().first()
         if existing_pc:
@@ -46,7 +46,7 @@ class PendingConversationService:
 
     async def get_pending_conversation(self, pc_id: str) -> Optional[PendingConversation]:
         result = await self.db.execute(
-            select(PendingConversation).where(PendingConversation.id == pc_id)
+            select(PendingConversation).where(PendingConversation.id == pc_id),
         )
         return result.scalars().first()
 

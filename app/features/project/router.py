@@ -15,7 +15,7 @@ router = APIRouter()
 async def create_project(
     payload: ProjectCreate,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     project = await project_service.create_project(
         owner_id=user_id,
@@ -28,7 +28,7 @@ async def create_project(
 async def get_project(
     project_id: str,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     try:
         project = await project_service.get_project(project_id, user_id)
@@ -41,7 +41,7 @@ async def update_project(
     project_id: str,
     payload: ProjectUpdate,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     try:
         project = await project_service.update_project(
@@ -59,7 +59,7 @@ async def update_project(
 async def delete_project(
     project_id: str,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     try:
         await project_service.delete_project(project_id, user_id)
@@ -71,7 +71,7 @@ async def delete_project(
 @router.get("/", response_model=List[ProjectOut])
 async def list_projects(
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     projects = await project_service.get_all_projects(user_id)
     return projects

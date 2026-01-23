@@ -48,7 +48,7 @@ class MessageService:
         result = await self.db.execute(
             select(Message)
             .where(Message.conversation_id == conversation_id)
-            .order_by(Message.created_at)
+            .order_by(Message.created_at),
         )
         return list(result.scalars().all())
 
@@ -56,8 +56,8 @@ class MessageService:
         result = await self.db.execute(
             select(Conversation).where(
                 Conversation.id == conversation_id,
-                ((Conversation.user_id == actor_id) | (Conversation.visitor_id == actor_id))
-            )
+                ((Conversation.user_id == actor_id) | (Conversation.visitor_id == actor_id)),
+            ),
         )
         conversation = result.scalar_one_or_none()
         return conversation is not None

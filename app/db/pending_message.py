@@ -32,5 +32,5 @@ class PendingMessage(Base):
     )
 
     pending_conversation: Mapped["PendingConversation"] = relationship(
-        back_populates="pending_messages"
+        back_populates="pending_messages",
     )

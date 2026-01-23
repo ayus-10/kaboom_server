@@ -51,12 +51,12 @@ class AuthService:
             await self.db.execute(
                 update(RefreshToken)
                 .where(RefreshToken.refresh_token_hash == token_hash)
-                .values(is_revoked=True)
+                .values(is_revoked=True),
             )
 
             await self._save_refresh_token(
                 user_id=user_id,
-                refresh_token=token_pair.refresh_token
+                refresh_token=token_pair.refresh_token,
             )
 
             return token_pair
@@ -71,7 +71,7 @@ class AuthService:
             is_token_valid = await self._verify_refresh_token(
                 user_id=user_id,
                 token_hash=token_hash,
-                verify_expiry=False
+                verify_expiry=False,
             )
             if not is_token_valid:
                 raise InvalidRefreshTokenError("Refresh token invalid")
@@ -79,7 +79,7 @@ class AuthService:
             await self.db.execute(
                 update(RefreshToken)
                 .where(RefreshToken.refresh_token_hash == token_hash)
-                .values(is_revoked=True)
+                .values(is_revoked=True),
             )
             await self.db.commit()
 
@@ -90,7 +90,7 @@ class AuthService:
         await self.db.execute(
             update(RefreshToken)
             .where(RefreshToken.user_id == user_id)
-            .values(is_revoked=True)
+            .values(is_revoked=True),
         )
         await self.db.commit()
 
@@ -168,14 +168,14 @@ class AuthService:
         self,
         user_id: str,
         token_hash: str,
-        verify_expiry: bool = True
+        verify_expiry: bool = True,
     ) -> bool:
         token_obj_query = await self.db.execute(
             select(RefreshToken).where(
                 (RefreshToken.refresh_token_hash == token_hash)
                 & (RefreshToken.user_id == user_id)
-                & (~RefreshToken.is_revoked)
-            )
+                & (~RefreshToken.is_revoked),
+            ),
         )
         token_obj = token_obj_query.scalar_one_or_none()
 
