@@ -13,7 +13,7 @@ class ConversationRead(BaseModel):
     visitor_id: str
     user_id: str
     created_at: datetime
-    deleted_at: Optional[datetime]
+    closed_at: Optional[datetime]
 
     class Config:
         from_attributes = True
