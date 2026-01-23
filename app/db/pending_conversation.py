@@ -29,6 +29,9 @@ class PendingConversation(Base):
     accepted_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
     )
+    closed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+    )
 
     visitor: Mapped["Visitor"] = relationship(back_populates="pending_conversations")
     conversation: Mapped[Optional["Conversation"]] = relationship(

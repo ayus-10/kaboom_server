@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 import uuid
 from typing import Optional
 
@@ -9,6 +10,7 @@ from app.db.visitor import Visitor
 from app.features.pending_conversation.exceptions import (
     ExistingPendingConversationError,
     InvalidVisitorIDError,
+    PendingConversationServiceError,
 )
 
 
@@ -47,3 +49,13 @@ class PendingConversationService:
             select(PendingConversation).where(PendingConversation.id == pc_id)
         )
         return result.scalars().first()
+
+    async def close_pending_conversation(self, pc_id: str) -> PendingConversation:
+        pc = await self.get_pending_conversation(pc_id)
+        if not pc:
+            raise PendingConversationServiceError()
+
+        pc.closed_at = datetime.now(UTC)
+        await self.db.commit()
+        await self.db.refresh(pc)
+        return pc
