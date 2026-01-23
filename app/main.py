@@ -1,9 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
 
+import app.db.models  # type: ignore # isort: skip
+
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.database import engine
@@ -16,6 +18,7 @@ from app.features.pending_conversation.router import (
 from app.features.project.router import router as project_router
 from app.features.user.router import router as user_router
 from app.features.visitor.router import router as visitor_router
+from app.features.visitor.websocket import router as visitor_ws_router
 from app.features.widget.router import router as widget_router
 
 logger = logging.getLogger()
@@ -63,18 +66,20 @@ app.include_router(conversation_router, prefix="/conversation", tags=["conversat
 app.include_router(
     widget_router,
     prefix="/project/{project_id}/widget",
-    tags=["widget"]
+    tags=["widget"],
 )
 app.include_router(
     message_router,
     prefix="/conversation/{conversation_id}/message",
-    tags=["message"]
+    tags=["message"],
 )
 app.include_router(
     pending_conversation_router,
     prefix="/pending-conversation",
-    tags=["pending-conversation"]
+    tags=["pending-conversation"],
 )
+
+app.include_router(visitor_ws_router)
 
 
 @app.exception_handler(Exception)

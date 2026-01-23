@@ -46,12 +46,16 @@ async def google_callback(
         token_data = await exchange_code_for_id_token(code)
 
         payload = await verify_google_id_token(
-            token_data.id_token, token_data.access_token
+            token_data.id_token, token_data.access_token,
         )
 
         tokens = await auth_service.login_with_google(google_payload=payload)
 
-        auth_service.set_refresh_token_cookie(response, tokens.refresh_token)
+        auth_service.set_token_cookie(
+            response=response,
+            refresh_token=tokens.refresh_token,
+            access_token=tokens.access_token,
+        )
 
         redirect_url = (
             f"{settings.CLIENT_URL}/oauth/callback#"
@@ -73,7 +77,7 @@ async def google_callback(
 
     except TokenVerificationError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid ID token",
         )
 
 
@@ -96,7 +100,11 @@ async def rotate_tokens(
             refresh_token=refresh_token,
         )
 
-        auth_service.set_refresh_token_cookie(response, tokens.refresh_token)
+        auth_service.set_token_cookie(
+            response=response,
+            refresh_token=tokens.refresh_token,
+            access_token=tokens.access_token,
+        )
 
         return {"access_token": tokens.access_token}
 
@@ -122,10 +130,9 @@ async def logout(
 
     try:
         await auth_service.invalidate_refresh_token(user_id, refresh_token)
-        auth_service.delete_refresh_token_cookie(response)
+        auth_service.delete_token_cookie(response)
 
-        return {"detail": "Logged out successfully"}
-
+        return RedirectResponse(settings.CLIENT_URL)
     except InvalidRefreshTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,6 +147,6 @@ async def logout_all(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     await auth_service.invalidate_all_refresh_tokens(user_id)
-    auth_service.delete_refresh_token_cookie(response)
+    auth_service.delete_token_cookie(response)
 
-    return {"detail": "Logged out from all devices"}
+    return RedirectResponse(settings.CLIENT_URL)

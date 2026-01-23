@@ -8,3 +8,4 @@ class UserRead(BaseModel):
     first_name: str
     last_name: str
     avatar_url: Optional[str]
+    user_actor_id:str

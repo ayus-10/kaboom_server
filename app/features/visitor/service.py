@@ -30,7 +30,7 @@ class VisitorService:
 
     async def get_visitor(self, visitor_id: str) -> Optional[Visitor]:
         result = await self.db.execute(
-            select(Visitor).where(Visitor.id == visitor_id)
+            select(Visitor).where(Visitor.id == visitor_id),
         )
         return result.scalars().first()
 

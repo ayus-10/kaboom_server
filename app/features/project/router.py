@@ -13,14 +13,14 @@ router = APIRouter()
 
 @router.post("/", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 async def create_project(
-    data: ProjectCreate,
+    payload: ProjectCreate,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     project = await project_service.create_project(
         owner_id=user_id,
-        title=data.title,
-        description=data.description,
+        title=payload.title,
+        description=payload.description,
     )
     return project
 
@@ -28,7 +28,7 @@ async def create_project(
 async def get_project(
     project_id: str,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     try:
         project = await project_service.get_project(project_id, user_id)
@@ -39,16 +39,16 @@ async def get_project(
 @router.patch("/{project_id}", response_model=ProjectOut)
 async def update_project(
     project_id: str,
-    data: ProjectUpdate,
+    payload: ProjectUpdate,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     try:
         project = await project_service.update_project(
             project_id=project_id,
             user_id=user_id,
-            new_title=data.title,
-            new_description=data.description,
+            new_title=payload.title,
+            new_description=payload.description,
         )
         return project
     except ProjectNotFound:
@@ -59,7 +59,7 @@ async def update_project(
 async def delete_project(
     project_id: str,
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     try:
         await project_service.delete_project(project_id, user_id)
@@ -71,7 +71,7 @@ async def delete_project(
 @router.get("/", response_model=List[ProjectOut])
 async def list_projects(
     user_id: str = Depends(get_current_user_id),
-    project_service: ProjectService = Depends(get_project_service)
+    project_service: ProjectService = Depends(get_project_service),
 ):
     projects = await project_service.get_all_projects(user_id)
     return projects

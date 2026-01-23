@@ -43,7 +43,7 @@ class Conversation(Base):
     user: Mapped["User"] = relationship(back_populates="conversations")
 
     pending_conversation: Mapped[Optional["PendingConversation"]] = relationship(
-        back_populates="conversation"
+        back_populates="conversation",
     )
 
     messages: Mapped[list["Message"]] = relationship(

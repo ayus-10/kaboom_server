@@ -6,7 +6,7 @@ from fastapi import Response
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.constants import REFRESH_TOKEN_EXPIRE_SECONDS
+from app.core.constants import ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_SECONDS
 from app.core.tokens import create_access_token, create_refresh_token
 from app.db.refresh_token import RefreshToken
 from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
@@ -51,12 +51,12 @@ class AuthService:
             await self.db.execute(
                 update(RefreshToken)
                 .where(RefreshToken.refresh_token_hash == token_hash)
-                .values(is_revoked=True)
+                .values(is_revoked=True),
             )
 
             await self._save_refresh_token(
                 user_id=user_id,
-                refresh_token=token_pair.refresh_token
+                refresh_token=token_pair.refresh_token,
             )
 
             return token_pair
@@ -71,7 +71,7 @@ class AuthService:
             is_token_valid = await self._verify_refresh_token(
                 user_id=user_id,
                 token_hash=token_hash,
-                verify_expiry=False
+                verify_expiry=False,
             )
             if not is_token_valid:
                 raise InvalidRefreshTokenError("Refresh token invalid")
@@ -79,7 +79,7 @@ class AuthService:
             await self.db.execute(
                 update(RefreshToken)
                 .where(RefreshToken.refresh_token_hash == token_hash)
-                .values(is_revoked=True)
+                .values(is_revoked=True),
             )
             await self.db.commit()
 
@@ -90,11 +90,11 @@ class AuthService:
         await self.db.execute(
             update(RefreshToken)
             .where(RefreshToken.user_id == user_id)
-            .values(is_revoked=True)
+            .values(is_revoked=True),
         )
         await self.db.commit()
 
-    def set_refresh_token_cookie(self, response: Response, refresh_token: str) -> None:
+    def set_token_cookie(self, response: Response, refresh_token: str, access_token: str) -> None:
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
@@ -104,10 +104,26 @@ class AuthService:
             max_age=REFRESH_TOKEN_EXPIRE_SECONDS,
             path="/",
         )
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=ACCESS_TOKEN_EXPIRE_SECONDS,
+            path="/",
+        )
 
-    def delete_refresh_token_cookie(self, response: Response) -> None:
+    def delete_token_cookie(self, response: Response) -> None:
         response.delete_cookie(
             key="refresh_token",
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            path="/",
+        )
+        response.delete_cookie(
+            key="access_token",
             httponly=True,
             secure=True,
             samesite="lax",
@@ -152,14 +168,14 @@ class AuthService:
         self,
         user_id: str,
         token_hash: str,
-        verify_expiry: bool = True
+        verify_expiry: bool = True,
     ) -> bool:
         token_obj_query = await self.db.execute(
             select(RefreshToken).where(
                 (RefreshToken.refresh_token_hash == token_hash)
                 & (RefreshToken.user_id == user_id)
-                & (~RefreshToken.is_revoked)
-            )
+                & (~RefreshToken.is_revoked),
+            ),
         )
         token_obj = token_obj_query.scalar_one_or_none()
 

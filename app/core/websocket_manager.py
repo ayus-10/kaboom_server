@@ -12,7 +12,6 @@ class ConnectionManager:
         self.lock = asyncio.Lock()
 
     async def connect(self, websocket: WebSocket, room: str):
-        await websocket.accept()
         async with self.lock:
             self.rooms.setdefault(room, set()).add(websocket)
 

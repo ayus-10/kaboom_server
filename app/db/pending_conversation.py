@@ -8,6 +8,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.db.conversation import Conversation
+    from app.db.pending_message import PendingMessage
     from app.db.visitor import Visitor
 
 class PendingConversation(Base):
@@ -28,9 +29,17 @@ class PendingConversation(Base):
     accepted_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
     )
+    closed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+    )
 
     visitor: Mapped["Visitor"] = relationship(back_populates="pending_conversations")
     conversation: Mapped[Optional["Conversation"]] = relationship(
         back_populates="pending_conversation",
         uselist=False,
+    )
+
+    pending_messages: Mapped[list["PendingMessage"]] = relationship(
+        back_populates="pending_conversation",
+        cascade="all, delete-orphan",
     )

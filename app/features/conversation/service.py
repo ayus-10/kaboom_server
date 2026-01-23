@@ -26,8 +26,8 @@ class ConversationService:
     ) -> Conversation:
         result = await self.db.execute(
             select(PendingConversation).where(
-                PendingConversation.id == pending_conversation_id
-            )
+                PendingConversation.id == pending_conversation_id,
+            ),
         )
         pending = result.scalars().first()
 
@@ -56,7 +56,7 @@ class ConversationService:
             select(Conversation).where(
                 Conversation.id == conversation_id,
                 Conversation.closed_at.is_(None),
-            )
+            ),
         )
         return result.scalars().first()
 
@@ -64,8 +64,8 @@ class ConversationService:
         result = await self.db.execute(
             select(Conversation).where(
                 Conversation.user_id == user_id,
-                Conversation.closed_at.is_(None)
-            )
+                Conversation.closed_at.is_(None),
+            ),
         )
         return list(result.scalars().all())
 

@@ -22,6 +22,7 @@ async def get_me(
             "first_name": user.first_name,
             "last_name": user.last_name,
             "avatar_url": user.avatar_url,
+            "user_actor_id": user.actor.id,
         }
     except UserServiceError:
         raise HTTPException(

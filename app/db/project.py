@@ -20,7 +20,7 @@ class Project(Base):
     description: Mapped[Optional[str]] = mapped_column(String)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -33,5 +33,5 @@ class Project(Base):
 
     widgets: Mapped[list["Widget"]] = relationship(
         back_populates="project",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )

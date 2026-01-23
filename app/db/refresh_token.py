@@ -29,13 +29,13 @@ class RefreshToken(Base):
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(UTC) + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS)
+        default=lambda: datetime.now(UTC) + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
     )
 
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(UTC)
+        default=lambda: datetime.now(UTC),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

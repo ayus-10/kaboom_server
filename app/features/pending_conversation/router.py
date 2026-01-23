@@ -3,14 +3,16 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id as require_admin_user
+from app.core.websocket_manager import ConnectionManager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
+from app.features.pending_conversation.exceptions import PendingConversationServiceError
 from app.features.pending_conversation.schema import PendingConversationRead
 from app.features.pending_conversation.service import (
     PendingConversationService,
 )
 
 router = APIRouter()
-
+manager = ConnectionManager()
 
 @router.get(
     "",
@@ -39,6 +41,36 @@ async def get_pending_conversation(
     if not pc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pending conversation not found"
+            detail="Pending conversation not found",
         )
     return pc
+
+@router.post(
+    "/{pc_id}/close",
+    response_model=PendingConversationRead,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_admin_user)],
+)
+async def close_pending_conversation(
+    pc_id: str,
+    pc_service: PendingConversationService = Depends(get_pending_conversation_service),
+):
+    try:
+        pc = await pc_service.close_pending_conversation(pc_id)
+
+        await manager.broadcast(
+            "pending_conversation:global",
+            {
+                "type": "pending_conversation.closed",
+                "payload": {
+                    "pending_conversation_id": pc.id,
+                },
+            },
+        )
+
+        return pc
+    except PendingConversationServiceError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pending conversation not found",
+        )

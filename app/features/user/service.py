@@ -3,6 +3,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.db.actor import Actor
 from app.db.user import User
@@ -18,7 +19,11 @@ class UserService:
 
     async def get_me(self, user_id: str) -> User:
         try:
-            result = await self.db.execute(select(User).where(User.id == user_id))
+            result = await self.db.execute(
+                select(User)
+                .options(selectinload(User.actor))
+                .where(User.id == user_id),
+            )
             user = result.scalars().first()
             if not user:
                 raise UserNotFoundError("User not found")

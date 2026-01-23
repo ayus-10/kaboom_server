@@ -35,7 +35,7 @@ class Visitor(Base):
     )
 
     conversations: Mapped[list["Conversation"]] = relationship(
-        back_populates="visitor"
+        back_populates="visitor",
     )
 
     actor: Mapped["Actor"] = relationship()
