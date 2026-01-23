@@ -8,7 +8,7 @@ from app.features.conversation.exceptions import (
     ConversationNotFoundError,
     PendingConversationNotFoundError,
 )
-from app.features.conversation.schema import ConversationRead
+from app.features.conversation.schema import ConversationCreate, ConversationRead
 from app.features.conversation.service import ConversationService
 
 router = APIRouter()
@@ -19,13 +19,13 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
 )
 async def create_conversation(
-    pending_conversation_id: str,
+    payload: ConversationCreate,
     conversation_service: ConversationService = Depends(get_conversation_service),
     user_id: str = Depends(get_current_user_id),
 ):
     try:
         return await conversation_service.create_from_pending(
-            pending_conversation_id=pending_conversation_id,
+            pending_conversation_id=payload.pending_conversation_id,
             user_id=user_id,
         )
 

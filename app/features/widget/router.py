@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.post("/", response_model=WidgetOut, status_code=status.HTTP_201_CREATED)
 async def create_widget(
-    data: WidgetCreate,
+    payload: WidgetCreate,
     project_id: UUID = Path(...),
     user_id: str = Depends(get_current_user_id),
     widget_service: WidgetService = Depends(get_widget_service),
@@ -23,9 +23,9 @@ async def create_widget(
         widget = await widget_service.create_widget(
             project_id=project_id,
             user_id=user_id,
-            title=data.title,
-            description=data.description,
-            site_url=data.site_url,
+            title=payload.title,
+            description=payload.description,
+            site_url=payload.site_url,
         )
 
         return widget
@@ -49,7 +49,7 @@ async def get_widget(
 @router.patch("/{widget_id}", response_model=WidgetOut)
 async def update_widget(
     widget_id: str,
-    data: WidgetUpdate,
+    payload: WidgetUpdate,
     user_id: str = Depends(get_current_user_id),
     widget_service: WidgetService = Depends(get_widget_service),
 ):
@@ -57,8 +57,8 @@ async def update_widget(
         widget = await widget_service.update_widget(
             widget_id=widget_id,
             user_id=user_id,
-            new_title=data.title,
-            new_description=data.description
+            new_title=payload.title,
+            new_description=payload.description
         )
         return widget
     except WidgetNotFound:
