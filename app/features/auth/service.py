@@ -10,7 +10,7 @@ from app.core.constants import ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE
 from app.core.tokens import create_access_token, create_refresh_token
 from app.db.refresh_token import RefreshToken
 from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
-from app.features.auth.schema import AuthTokenPair, GooglePayload
+from app.features.auth.schema import AuthTokenPair, GooglePayload, LoginResult
 from app.features.user.service import UserService
 
 
@@ -19,21 +19,21 @@ class AuthService:
         self.db = db
         self.user_service = user_service
 
-    async def login_with_google(self, google_payload: GooglePayload) -> AuthTokenPair:
-        user = await self.user_service.get_or_create_google_user(
+    async def login_with_google(self, google_payload: GooglePayload) -> LoginResult:
+        result = await self.user_service.get_or_create_google_user(
             email=google_payload.email,
             first_name=google_payload.given_name,
             last_name=google_payload.family_name,
             avatar_url=google_payload.picture,
         )
 
-        tokens = self._generate_token_pair(str(user.id))
+        tokens = self._generate_token_pair(str(result["user"].id))
         await self._save_refresh_token(
-            user_id=str(user.id),
+            user_id=str(result["user"].id),
             refresh_token=tokens.refresh_token,
         )
 
-        return tokens
+        return LoginResult(tokens=tokens, is_new=result["is_new"])
 
     async def rotate_auth_tokens(self, user_id: str, refresh_token: str) -> AuthTokenPair:
         try:

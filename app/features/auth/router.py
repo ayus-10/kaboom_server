@@ -49,18 +49,22 @@ async def google_callback(
             token_data.id_token, token_data.access_token,
         )
 
-        tokens = await auth_service.login_with_google(google_payload=payload)
+        result = await auth_service.login_with_google(google_payload=payload)
 
         auth_service.set_token_cookie(
             response=response,
-            refresh_token=tokens.refresh_token,
-            access_token=tokens.access_token,
+            refresh_token=result["tokens"].refresh_token,
+            access_token=result["tokens"].access_token,
         )
 
         redirect_url = (
             f"{settings.CLIENT_URL}/oauth/callback#"
-            + urlencode({"access_token": tokens.access_token})
+            + urlencode({
+                "access_token": result["tokens"].access_token,
+                "is_new_user": result["is_new"],
+            })
         )
+
 
         return RedirectResponse(
             url=redirect_url,

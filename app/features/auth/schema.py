@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, TypedDict
 
 from pydantic import BaseModel, EmailStr
 
@@ -6,6 +6,11 @@ from pydantic import BaseModel, EmailStr
 class AuthTokenPair(BaseModel):
     refresh_token: str
     access_token: str
+
+
+class LoginResult(TypedDict):
+    tokens: AuthTokenPair
+    is_new: bool
 
 
 class GooglePayload(BaseModel):
