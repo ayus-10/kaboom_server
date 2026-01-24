@@ -115,7 +115,7 @@ async def rotate_tokens(
         )
 
 
-@router.post("/logout")
+@router.get("/logout")
 async def logout(
     response: Response,
     user_id: str = Depends(get_current_user_id),
@@ -140,7 +140,7 @@ async def logout(
         )
 
 
-@router.post("/logout-all")
+@router.get("/logout-all")
 async def logout_all(
     response: Response,
     user_id: str = Depends(get_current_user_id),
