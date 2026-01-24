@@ -2,7 +2,7 @@ from typing import Optional
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.core.config import settings
 from app.core.constants import GOOGLE_OAUTH_AUTH_URL
@@ -119,7 +119,7 @@ async def rotate_tokens(
         )
 
 
-@router.get("/logout")
+@router.post("/logout")
 async def logout(
     response: Response,
     user_id: str = Depends(get_current_user_id),
@@ -136,7 +136,7 @@ async def logout(
         await auth_service.invalidate_refresh_token(user_id, refresh_token)
         auth_service.delete_token_cookie(response)
 
-        return RedirectResponse(settings.CLIENT_URL)
+        return JSONResponse({"detail": "Logged out successfully"})
     except InvalidRefreshTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -144,7 +144,7 @@ async def logout(
         )
 
 
-@router.get("/logout-all")
+@router.post("/logout-all")
 async def logout_all(
     response: Response,
     user_id: str = Depends(get_current_user_id),
@@ -153,4 +153,4 @@ async def logout_all(
     await auth_service.invalidate_all_refresh_tokens(user_id)
     auth_service.delete_token_cookie(response)
 
-    return RedirectResponse(settings.CLIENT_URL)
+    return JSONResponse({"detail": "Logged out successfully"})
