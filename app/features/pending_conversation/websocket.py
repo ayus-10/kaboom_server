@@ -7,6 +7,7 @@ from app.core.websocket_manager import ConnectionManager
 router = APIRouter()
 manager = ConnectionManager()
 
+""" This endpoint is only used to connect an admin to global room, events for this room are emitted in visitor websocket  """
 @router.websocket("/ws/pending-conversation")
 async def admin_pending_conversation_ws(
     websocket: WebSocket,
