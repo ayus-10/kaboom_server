@@ -50,16 +50,29 @@ class PendingConversationService:
         )
         return list(result.scalars().all())
 
-    async def get_pending_conversation(self, pc_id: str) -> Optional[PendingConversation]:
-        result = await self.db.execute(
-            select(PendingConversation)
-            .where(PendingConversation.id == pc_id)
-            .where(PendingConversation.closed_at.is_(None)),
+    async def get_pending_conversation(
+        self,
+        pc_id: Optional[str] = None,
+        visitor_id: Optional[str] = None,
+    ) -> Optional[PendingConversation]:
+        if pc_id is None and visitor_id is None:
+            return None
+
+        stmt = select(PendingConversation).where(
+            PendingConversation.closed_at.is_(None)
         )
+
+        if pc_id is not None:
+            stmt = stmt.where(PendingConversation.id == pc_id)
+
+        if visitor_id is not None:
+            stmt = stmt.where(PendingConversation.visitor_id == visitor_id)
+
+        result = await self.db.execute(stmt)
         return result.scalars().first()
 
     async def close_pending_conversation(self, pc_id: str) -> PendingConversation:
-        pc = await self.get_pending_conversation(pc_id)
+        pc = await self.get_pending_conversation(pc_id=pc_id)
         if not pc:
             raise PendingConversationServiceError()
 
@@ -74,7 +87,7 @@ class PendingConversationService:
         visitor_id: str,
         content: str,
     ) -> PendingMessage:
-        pc = await self.get_pending_conversation(pc_id)
+        pc = await self.get_pending_conversation(pc_id=pc_id)
         if not pc:
             raise PendingConversationServiceError()
 

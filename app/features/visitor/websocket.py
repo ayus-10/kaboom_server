@@ -100,7 +100,7 @@ async def visitor_ws(
                     })
                     continue
 
-                pc = await pc_service.get_pending_conversation(visitor_id)
+                pc = await pc_service.get_pending_conversation(visitor_id=visitor_id)
                 if not pc:
                     await websocket.send_json({
                         "type": "error",

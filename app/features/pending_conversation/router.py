@@ -37,7 +37,7 @@ async def get_pending_conversation(
     pc_id: str,
     pc_service: PendingConversationService = Depends(get_pending_conversation_service),
 ):
-    pc = await pc_service.get_pending_conversation(pc_id)
+    pc = await pc_service.get_pending_conversation(pc_id=pc_id)
     if not pc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
