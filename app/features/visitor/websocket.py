@@ -48,6 +48,10 @@ async def visitor_ws(
             })
             await websocket.close()
             return
+        await websocket.send_json({
+            "type": "visitor.found",
+            "payload": {"visitor_id": visitor_id, "visitor_actor_id": visitor.actor_id},
+        })
 
     room = f"pending_conversation:{visitor_id}"
     await manager.connect(websocket, room)
