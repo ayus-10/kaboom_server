@@ -96,6 +96,7 @@ class PendingConversationService:
             raise PendingConversationServiceError()
 
         new_pm = PendingMessage(
+            id=str(uuid.uuid4()),
             pending_conversation_id=pc.id,
             sender_visitor_id=visitor.id,
             content=content,
