@@ -4,8 +4,5 @@ class PendingConversationServiceError(Exception):
 class InvalidVisitorIDError(PendingConversationServiceError):
     pass
 
-class ExistingPendingConversationError(PendingConversationServiceError):
-    pass
-
 class PendingConversationNotFoundError(PendingConversationServiceError):
     pass

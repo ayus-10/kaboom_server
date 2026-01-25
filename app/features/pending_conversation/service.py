@@ -9,7 +9,6 @@ from app.db.pending_conversation import PendingConversation
 from app.db.pending_message import PendingMessage
 from app.db.visitor import Visitor
 from app.features.pending_conversation.exceptions import (
-    ExistingPendingConversationError,
     InvalidVisitorIDError,
     PendingConversationServiceError,
 )
@@ -21,18 +20,20 @@ class PendingConversationService:
         self.db = db
         self.visitor_service  = visitor_service
 
-    async def create_pending_conversation(self, visitor_id: str) -> PendingConversation:
+    async def create_or_get_pending_conversation(self, visitor_id: str) -> PendingConversation:
         result = await self.db.execute(select(Visitor).where(Visitor.id == visitor_id))
         visitor = result.scalars().first()
         if not visitor:
             raise InvalidVisitorIDError()
 
         result = await self.db.execute(
-            select(PendingConversation).where(PendingConversation.visitor_id == visitor_id),
+            select(PendingConversation)
+            .where(PendingConversation.visitor_id == visitor_id)
+            .where(PendingConversation.closed_at.is_(None))
         )
         existing_pc = result.scalars().first()
         if existing_pc:
-            raise ExistingPendingConversationError()
+            return existing_pc
 
         new_pc = PendingConversation(
             id=str(uuid.uuid4()),

@@ -4,10 +4,7 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.core.websocket_manager import ConnectionManager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
-from app.features.pending_conversation.exceptions import (
-    ExistingPendingConversationError,
-    InvalidVisitorIDError,
-)
+from app.features.pending_conversation.exceptions import InvalidVisitorIDError
 from app.features.pending_conversation.service import PendingConversationService
 from app.features.visitor.dependencies import get_visitor_service
 from app.features.visitor.service import VisitorService
@@ -71,15 +68,7 @@ async def visitor_ws(
 
             if message_type == "create":
                 try:
-                    existing = await pc_service.get_pending_conversation(visitor_id)
-                    if existing:
-                        await websocket.send_json({
-                            "type": "pending_conversation.exists",
-                            "payload": {"pending_conversation_id": existing.id},
-                        })
-                        continue
-
-                    pending_conversation = await pc_service.create_pending_conversation(visitor_id)
+                    pending_conversation = await pc_service.create_or_get_pending_conversation(visitor_id)
 
                     await manager.broadcast(
                         "pending_conversation:global",
@@ -95,12 +84,6 @@ async def visitor_ws(
                     await websocket.send_json({
                         "type": "pending_conversation.created",
                         "payload": {"pending_conversation_id": pending_conversation.id},
-                    })
-
-                except ExistingPendingConversationError:
-                    await websocket.send_json({
-                        "type": "error",
-                        "payload": {"message": "Conversation has already been requested"},
                     })
 
                 except InvalidVisitorIDError:
