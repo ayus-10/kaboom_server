@@ -37,7 +37,7 @@ async def visitor_ws(
         visitor_id = visitor.id
         await websocket.send_json({
             "type": "visitor.created",
-            "payload": {"visitor_id": visitor_id},
+            "payload": {"visitor_id": visitor_id, "visitor_actor_id": visitor.actor_id},
         })
     else:
         visitor = await visitor_service.get_visitor(visitor_id)
