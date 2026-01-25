@@ -11,6 +11,7 @@ from app.features.user.exceptions import (
     UserNotFoundError,
     UserServiceError,
 )
+from app.features.user.schema import UserWithStatus
 
 
 class UserService:
@@ -37,13 +38,13 @@ class UserService:
         first_name: Optional[str],
         last_name: Optional[str],
         avatar_url: Optional[str],
-    ) -> User:
+    ) -> UserWithStatus:
         try:
             result = await self.db.execute(select(User).where(User.email == email))
             user = result.scalars().first()
 
             if user:
-                return user
+                return UserWithStatus(user=user, is_new=False)
 
             new_actor = Actor(
                 id=str(uuid.uuid4()),
@@ -65,7 +66,7 @@ class UserService:
             await self.db.commit()
             await self.db.refresh(new_user)
 
-            return new_user
+            return UserWithStatus(user=new_user, is_new=True)
 
         except Exception as e:
             raise UserServiceError("Error while creating user") from e

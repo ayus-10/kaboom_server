@@ -4,10 +4,7 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.core.websocket_manager import ConnectionManager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
-from app.features.pending_conversation.exceptions import (
-    ExistingPendingConversationError,
-    InvalidVisitorIDError,
-)
+from app.features.pending_conversation.exceptions import InvalidVisitorIDError
 from app.features.pending_conversation.service import PendingConversationService
 from app.features.visitor.dependencies import get_visitor_service
 from app.features.visitor.service import VisitorService
@@ -15,7 +12,12 @@ from app.features.visitor.service import VisitorService
 router = APIRouter()
 manager = ConnectionManager()
 
-
+"""
+This endpoint is used to:
+    1. Create a visitor on connection
+    2. Create a pending conversation on visitor request (on sending "create") -> broadcast to pending_conversation:global
+    3. Create a pending message on visitor request (on sending "send-message") -> broadcast to pending_conversation:global
+"""
 @router.websocket("/ws/visitor")
 async def visitor_ws(
     websocket: WebSocket,
@@ -24,7 +26,6 @@ async def visitor_ws(
 ):
     await websocket.accept()
 
-    # Get or create visitor
     visitor_id = websocket.query_params.get("visitor_id")
 
     if not visitor_id:
@@ -33,7 +34,7 @@ async def visitor_ws(
         visitor_id = visitor.id
         await websocket.send_json({
             "type": "visitor.created",
-            "payload": {"visitor_id": visitor_id},
+            "payload": {"visitor_id": visitor_id, "visitor_actor_id": visitor.actor_id},
         })
     else:
         visitor = await visitor_service.get_visitor(visitor_id)
@@ -44,6 +45,10 @@ async def visitor_ws(
             })
             await websocket.close()
             return
+        await websocket.send_json({
+            "type": "visitor.found",
+            "payload": {"visitor_id": visitor_id, "visitor_actor_id": visitor.actor_id},
+        })
 
     room = f"pending_conversation:{visitor_id}"
     await manager.connect(websocket, room)
@@ -63,18 +68,8 @@ async def visitor_ws(
 
             if message_type == "create":
                 try:
-                    # Check for existing pending conversation
-                    existing = await pc_service.get_pending_conversation(visitor_id)
-                    if existing:
-                        await websocket.send_json({
-                            "type": "pending_conversation.exists",
-                            "payload": {"pending_conversation_id": existing.id},
-                        })
-                        continue
+                    pending_conversation = await pc_service.create_or_get_pending_conversation(visitor_id)
 
-                    pending_conversation = await pc_service.create_pending_conversation(visitor_id)
-
-                    # Broadcast to admins
                     await manager.broadcast(
                         "pending_conversation:global",
                         {
@@ -86,16 +81,9 @@ async def visitor_ws(
                         },
                     )
 
-                    # Notify visitor
                     await websocket.send_json({
                         "type": "pending_conversation.created",
                         "payload": {"pending_conversation_id": pending_conversation.id},
-                    })
-
-                except ExistingPendingConversationError:
-                    await websocket.send_json({
-                        "type": "error",
-                        "payload": {"message": "Conversation has already been requested"},
                     })
 
                 except InvalidVisitorIDError:
@@ -103,6 +91,44 @@ async def visitor_ws(
                         "type": "error",
                         "payload": {"message": "Unable to initiate conversation"},
                     })
+            elif message_type == "send-message":
+                msg_content = data.get("message")
+                if not msg_content:
+                    await websocket.send_json({
+                        "type": "error",
+                        "payload": {"message": "No message content"},
+                    })
+                    continue
+
+                pc = await pc_service.get_pending_conversation(visitor_id=visitor_id)
+                if not pc:
+                    await websocket.send_json({
+                        "type": "error",
+                        "payload": {"message": "No pending conversation found"},
+                    })
+                    continue
+
+                pm = await pc_service.send_pending_message(
+                    visitor_id=visitor_id,
+                    content=msg_content,
+                    pc_id=pc.id
+                )
+
+                await manager.broadcast(
+                    f"pending_conversation:global",
+                    {
+                        "type": "pending_message.created",
+                        "payload": {
+                            "pending_conversation_id": pc.id,
+                            "pending_message_id": pm.id,
+                        },
+                    },
+                )
+
+                await websocket.send_json({
+                    "type": "pending_message.created",
+                    "payload": {"pending_message_id": pm.id},
+                })
             elif message_type == "ping":
                 await websocket.send_json({"type": "pong"})
             else:

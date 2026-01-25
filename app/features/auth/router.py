@@ -2,7 +2,7 @@ from typing import Optional
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.core.config import settings
 from app.core.constants import GOOGLE_OAUTH_AUTH_URL
@@ -49,18 +49,22 @@ async def google_callback(
             token_data.id_token, token_data.access_token,
         )
 
-        tokens = await auth_service.login_with_google(google_payload=payload)
+        result = await auth_service.login_with_google(google_payload=payload)
 
         auth_service.set_token_cookie(
             response=response,
-            refresh_token=tokens.refresh_token,
-            access_token=tokens.access_token,
+            refresh_token=result["tokens"].refresh_token,
+            access_token=result["tokens"].access_token,
         )
 
         redirect_url = (
             f"{settings.CLIENT_URL}/oauth/callback#"
-            + urlencode({"access_token": tokens.access_token})
+            + urlencode({
+                "access_token": result["tokens"].access_token,
+                "is_new_user": result["is_new"],
+            })
         )
+
 
         return RedirectResponse(
             url=redirect_url,
@@ -132,7 +136,7 @@ async def logout(
         await auth_service.invalidate_refresh_token(user_id, refresh_token)
         auth_service.delete_token_cookie(response)
 
-        return RedirectResponse(settings.CLIENT_URL)
+        return JSONResponse({"detail": "Logged out successfully"})
     except InvalidRefreshTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -149,4 +153,4 @@ async def logout_all(
     await auth_service.invalidate_all_refresh_tokens(user_id)
     auth_service.delete_token_cookie(response)
 
-    return RedirectResponse(settings.CLIENT_URL)
+    return JSONResponse({"detail": "Logged out successfully"})
