@@ -15,8 +15,8 @@ manager = ConnectionManager()
 """
 This endpoint is used to:
     1. Create a visitor on connection
-    2. Create a pending conversation on visitor request (on sending "create") -> broadcast to pending_conversation:global
-    3. Create a pending message on visitor request (on sending "send-message") -> broadcast to pending_conversation:global
+    2. Create a pending conversation (on event "create"), broadcast to pending_conversation:global
+    3. Create a pending message (on event "send-message"), broadcast to pending_conversation:global
 """
 @router.websocket("/ws/visitor")
 async def visitor_ws(
@@ -68,7 +68,9 @@ async def visitor_ws(
 
             if message_type == "create":
                 try:
-                    pending_conversation = await pc_service.create_or_get_pending_conversation(visitor_id)
+                    pending_conversation = await pc_service.create_or_get_pending_conversation(
+                        visitor_id,
+                    )
 
                     await manager.broadcast(
                         "pending_conversation:global",
@@ -111,11 +113,11 @@ async def visitor_ws(
                 pm = await pc_service.send_pending_message(
                     visitor_id=visitor_id,
                     content=msg_content,
-                    pc_id=pc.id
+                    pc_id=pc.id,
                 )
 
                 await manager.broadcast(
-                    f"pending_conversation:global",
+                    "pending_conversation:global",
                     {
                         "type": "pending_message.created",
                         "payload": {

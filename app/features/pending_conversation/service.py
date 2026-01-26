@@ -29,7 +29,7 @@ class PendingConversationService:
         result = await self.db.execute(
             select(PendingConversation)
             .where(PendingConversation.visitor_id == visitor_id)
-            .where(PendingConversation.closed_at.is_(None))
+            .where(PendingConversation.closed_at.is_(None)),
         )
         existing_pc = result.scalars().first()
         if existing_pc:
@@ -59,7 +59,7 @@ class PendingConversationService:
             return None
 
         stmt = select(PendingConversation).where(
-            PendingConversation.closed_at.is_(None)
+            PendingConversation.closed_at.is_(None),
         )
 
         if pc_id is not None:
