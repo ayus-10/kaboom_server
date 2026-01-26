@@ -2,7 +2,7 @@ from json import JSONDecodeError
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
-from app.core.websocket_manager import ConnectionManager
+from app.core.websocket_manager import ws_manager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
 from app.features.pending_conversation.exceptions import InvalidVisitorIDError
 from app.features.pending_conversation.service import PendingConversationService
@@ -10,13 +10,12 @@ from app.features.visitor.dependencies import get_visitor_service
 from app.features.visitor.service import VisitorService
 
 router = APIRouter()
-manager = ConnectionManager()
 
 """
 This endpoint is used to:
     1. Create a visitor on connection
-    2. Create a pending conversation on visitor request (on sending "create") -> broadcast to pending_conversation:global
-    3. Create a pending message on visitor request (on sending "send-message") -> broadcast to pending_conversation:global
+    2. Create a pending conversation (on event "create"), broadcast to pending_conversation:global
+    3. Create a pending message (on event "send-message"), broadcast to pending_conversation:global
 """
 @router.websocket("/ws/visitor")
 async def visitor_ws(
@@ -51,7 +50,7 @@ async def visitor_ws(
         })
 
     room = f"pending_conversation:{visitor_id}"
-    await manager.connect(websocket, room)
+    await ws_manager.connect(websocket, room)
 
     try:
         while True:
@@ -68,9 +67,11 @@ async def visitor_ws(
 
             if message_type == "create":
                 try:
-                    pending_conversation = await pc_service.create_or_get_pending_conversation(visitor_id)
+                    pending_conversation = await pc_service.create_or_get_pending_conversation(
+                        visitor_id,
+                    )
 
-                    await manager.broadcast(
+                    await ws_manager.broadcast(
                         "pending_conversation:global",
                         {
                             "type": "pending_conversation.created",
@@ -111,11 +112,11 @@ async def visitor_ws(
                 pm = await pc_service.send_pending_message(
                     visitor_id=visitor_id,
                     content=msg_content,
-                    pc_id=pc.id
+                    pc_id=pc.id,
                 )
 
-                await manager.broadcast(
-                    f"pending_conversation:global",
+                await ws_manager.broadcast(
+                    "pending_conversation:global",
                     {
                         "type": "pending_message.created",
                         "payload": {
@@ -140,4 +141,4 @@ async def visitor_ws(
     except WebSocketDisconnect:
         pass
     finally:
-        await manager.disconnect(websocket, room)
+        await ws_manager.disconnect(websocket, room)

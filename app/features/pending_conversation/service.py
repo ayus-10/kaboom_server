@@ -4,6 +4,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.strategy_options import selectinload
 
 from app.db.pending_conversation import PendingConversation
 from app.db.pending_message import PendingMessage
@@ -29,7 +30,7 @@ class PendingConversationService:
         result = await self.db.execute(
             select(PendingConversation)
             .where(PendingConversation.visitor_id == visitor_id)
-            .where(PendingConversation.closed_at.is_(None))
+            .where(PendingConversation.closed_at.is_(None)),
         )
         existing_pc = result.scalars().first()
         if existing_pc:
@@ -46,9 +47,17 @@ class PendingConversationService:
 
     async def list_pending_conversations(self) -> list[PendingConversation]:
         result = await self.db.execute(
-            select(PendingConversation).where(PendingConversation.closed_at.is_(None)),
+            select(PendingConversation)
+            .where(
+                PendingConversation.closed_at.is_(None),
+                PendingConversation.accepted_at.is_(None),
+            )
+            .options(
+                selectinload(PendingConversation.pending_messages),
+            ),
         )
-        return list(result.scalars().all())
+        pending_conversations = result.scalars().all()
+        return list(pending_conversations)
 
     async def get_pending_conversation(
         self,
@@ -59,7 +68,8 @@ class PendingConversationService:
             return None
 
         stmt = select(PendingConversation).where(
-            PendingConversation.closed_at.is_(None)
+            PendingConversation.closed_at.is_(None),
+            PendingConversation.accepted_at.is_(None),
         )
 
         if pc_id is not None:

@@ -84,7 +84,7 @@ class WidgetService:
             select(Widget)
             .join(Project, Widget.project_id == Project.id)
             .where(
-                Widget.project_id == project_id,
+                Widget.project_id == str(project_id),
                 Widget.deleted_at.is_(None),
                 Project.owner_id == user_id,
                 Project.deleted_at.is_(None),
