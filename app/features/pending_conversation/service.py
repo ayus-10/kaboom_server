@@ -48,7 +48,10 @@ class PendingConversationService:
     async def list_pending_conversations(self) -> list[PendingConversation]:
         result = await self.db.execute(
             select(PendingConversation)
-            .where(PendingConversation.closed_at.is_(None))
+            .where(
+                PendingConversation.closed_at.is_(None),
+                PendingConversation.accepted_at.is_(None),
+            )
             .options(
                 selectinload(PendingConversation.pending_messages),
             ),
@@ -66,6 +69,7 @@ class PendingConversationService:
 
         stmt = select(PendingConversation).where(
             PendingConversation.closed_at.is_(None),
+            PendingConversation.accepted_at.is_(None),
         )
 
         if pc_id is not None:

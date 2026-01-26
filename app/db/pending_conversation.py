@@ -42,4 +42,5 @@ class PendingConversation(Base):
     pending_messages: Mapped[list["PendingMessage"]] = relationship(
         back_populates="pending_conversation",
         cascade="all, delete-orphan",
+        order_by="desc(PendingMessage.created_at)",
     )
