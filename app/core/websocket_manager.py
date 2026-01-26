@@ -26,8 +26,22 @@ class ConnectionManager:
         async with self.lock:
             sockets = list(self.rooms.get(room, []))
 
+        dead_sockets: list[WebSocket] = []
+
         for ws in sockets:
-            await ws.send_json(message)
+            try:
+                await ws.send_json(message)
+            except Exception:
+                dead_sockets.append(ws)
+
+        if dead_sockets:
+            async with self.lock:
+                for ws in dead_sockets:
+                    if room in self.rooms:
+                        self.rooms[room].discard(ws)
+                        if not self.rooms[room]:
+                            del self.rooms[room]
+
 
 
 ws_manager = ConnectionManager()
