@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id as require_admin_user
-from app.core.websocket_manager import ConnectionManager
+from app.core.websocket_manager import ws_manager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
 from app.features.pending_conversation.exceptions import PendingConversationServiceError
 from app.features.pending_conversation.schema import PendingConversationRead
@@ -12,7 +12,6 @@ from app.features.pending_conversation.service import (
 )
 
 router = APIRouter()
-manager = ConnectionManager()
 
 @router.get(
     "",
@@ -58,7 +57,7 @@ async def close_pending_conversation(
     try:
         pc = await pc_service.close_pending_conversation(pc_id)
 
-        await manager.broadcast(
+        await ws_manager.broadcast(
             "pending_conversation:global",
             {
                 "type": "pending_conversation.closed",

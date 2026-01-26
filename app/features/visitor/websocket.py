@@ -2,7 +2,7 @@ from json import JSONDecodeError
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
-from app.core.websocket_manager import ConnectionManager
+from app.core.websocket_manager import ws_manager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
 from app.features.pending_conversation.exceptions import InvalidVisitorIDError
 from app.features.pending_conversation.service import PendingConversationService
@@ -10,7 +10,6 @@ from app.features.visitor.dependencies import get_visitor_service
 from app.features.visitor.service import VisitorService
 
 router = APIRouter()
-manager = ConnectionManager()
 
 """
 This endpoint is used to:
@@ -51,7 +50,7 @@ async def visitor_ws(
         })
 
     room = f"pending_conversation:{visitor_id}"
-    await manager.connect(websocket, room)
+    await ws_manager.connect(websocket, room)
 
     try:
         while True:
@@ -72,7 +71,7 @@ async def visitor_ws(
                         visitor_id,
                     )
 
-                    await manager.broadcast(
+                    await ws_manager.broadcast(
                         "pending_conversation:global",
                         {
                             "type": "pending_conversation.created",
@@ -116,7 +115,7 @@ async def visitor_ws(
                     pc_id=pc.id,
                 )
 
-                await manager.broadcast(
+                await ws_manager.broadcast(
                     "pending_conversation:global",
                     {
                         "type": "pending_message.created",
@@ -142,4 +141,4 @@ async def visitor_ws(
     except WebSocketDisconnect:
         pass
     finally:
-        await manager.disconnect(websocket, room)
+        await ws_manager.disconnect(websocket, room)

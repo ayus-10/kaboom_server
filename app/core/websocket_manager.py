@@ -28,3 +28,6 @@ class ConnectionManager:
 
         for ws in sockets:
             await ws.send_json(message)
+
+
+ws_manager = ConnectionManager()

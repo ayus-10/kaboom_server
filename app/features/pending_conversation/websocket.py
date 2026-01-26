@@ -4,10 +4,9 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.core.constants import WS_POLICY_VIOLATION
 from app.core.security import get_current_user_id_ws
-from app.core.websocket_manager import ConnectionManager
+from app.core.websocket_manager import ws_manager
 
 router = APIRouter()
-manager = ConnectionManager()
 
 """
 This endpoint is only used to connect an admin to global room.
@@ -22,7 +21,7 @@ async def admin_pending_conversation_ws(websocket: WebSocket):
         return None
 
     room = "pending_conversation:global"
-    await manager.connect(websocket, room)
+    await ws_manager.connect(websocket, room)
 
     try:
         while True:
@@ -30,4 +29,4 @@ async def admin_pending_conversation_ws(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
     finally:
-        await manager.disconnect(websocket, room)
+        await ws_manager.disconnect(websocket, room)
