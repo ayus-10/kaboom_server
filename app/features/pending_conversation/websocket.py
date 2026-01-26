@@ -1,4 +1,3 @@
-import asyncio
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -25,7 +24,7 @@ async def admin_pending_conversation_ws(websocket: WebSocket):
 
     try:
         while True:
-            await asyncio.sleep(1)
+            await websocket.receive_text()
     except WebSocketDisconnect:
         pass
     finally:
