@@ -20,12 +20,13 @@ async def create_message(
     payload: MessageCreate,
     message_service: MessageService = Depends(get_message_service),
     current_user_id: str = Depends(get_current_user_id),
-    conversation_id: str = Path(...)
+    conversation_id: str = Path(...),
 ):
     try:
         message = await message_service.create_message(
             conversation_id=conversation_id,
-            sender_actor_id=current_user_id,
+            user_id=current_user_id,
+            visitor_id=None,
             content=payload.content,
         )
         return message
@@ -46,7 +47,7 @@ async def list_messages(
     try:
         messages = await message_service.list_messages_by_conversation(
             conversation_id=conversation_id,
-            actor_id=current_user_id,
+            user_id=current_user_id,
         )
         return messages
     except MessageAuthorizationError:
