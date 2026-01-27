@@ -57,6 +57,8 @@ class ConversationService:
             pending_conversation_id=pending_conv.id,
         )
         self.db.add(new_conversation)
+        await self.db.commit()
+        await self.db.refresh(new_conversation)
 
         messages_payload = [
             {
@@ -72,7 +74,6 @@ class ConversationService:
             await self.db.execute(insert(Message), messages_payload)
 
         await self.db.commit()
-        await self.db.refresh(new_conversation)
 
         return new_conversation
 

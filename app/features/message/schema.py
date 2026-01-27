@@ -8,8 +8,8 @@ class MessageBase(BaseModel):
     content: str
 
 
-class MessageCreate(MessageBase):
-    pass
+class MessageCreate(BaseModel):
+    content: str
 
 
 class MessageRead(MessageBase):

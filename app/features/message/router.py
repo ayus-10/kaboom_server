@@ -20,10 +20,11 @@ async def create_message(
     payload: MessageCreate,
     message_service: MessageService = Depends(get_message_service),
     current_user_id: str = Depends(get_current_user_id),
+    conversation_id: str = Path(...)
 ):
     try:
         message = await message_service.create_message(
-            conversation_id=payload.conversation_id,
+            conversation_id=conversation_id,
             sender_actor_id=current_user_id,
             content=payload.content,
         )
