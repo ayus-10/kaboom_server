@@ -122,7 +122,7 @@ async def visitor_ws(
                         "payload": {
                             "pending_conversation_id": pc.id,
                             "pending_message_id": pm.id,
-                            "pending_message_content": pm.content
+                            "pending_message_content": pm.content,
                         },
                     },
                 )
