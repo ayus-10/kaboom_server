@@ -24,7 +24,6 @@ class PendingMessageRead(BaseModel):
 
 class PendingConversationReadWithMessages(BaseModel):
     id: str
-    visitor_id: str
     created_at: datetime
     pending_messages: List[PendingMessageRead] = []
     visitor: VisitorRead
