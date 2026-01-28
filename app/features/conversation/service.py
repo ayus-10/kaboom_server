@@ -97,6 +97,7 @@ class ConversationService:
             .where(Message.conversation_id == Conversation.id)
             .order_by(desc(Message.created_at))
             .limit(1)
+            .correlate(Conversation)
             .lateral()
         )
 
@@ -111,7 +112,7 @@ class ConversationService:
         )
 
         result = await self.db.execute(stmt)
-        conversation_list_raw = list(result.scalars().all())
+        conversation_list_raw = list(result.unique().scalars().all())
 
         conversation_with_latest_message: list[ConversationReadWithLatestMessage] = []
         for c in conversation_list_raw:
