@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.database import engine
 from app.features.auth.router import router as auth_router
 from app.features.conversation.router import router as conversation_router
+from app.features.conversation.websocket import router as admin_conversation_ws_router
 from app.features.message.router import router as message_router
 from app.features.pending_conversation.router import (
     router as pending_conversation_router,
@@ -81,6 +82,7 @@ app.include_router(
 
 app.include_router(visitor_ws_router)
 app.include_router(pending_conversation_ws_router)
+app.include_router(admin_conversation_ws_router)
 
 
 @app.exception_handler(Exception)

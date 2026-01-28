@@ -28,10 +28,12 @@ async def create_conversation(
     user_id: str = Depends(get_current_user_id),
 ):
     try:
-        return await conversation_service.create_from_pending(
+        conv = await conversation_service.create_from_pending(
             pending_conversation_id=payload.pending_conversation_id,
             user_id=user_id,
         )
+        await conversation_service.broadcast_conv_created(conv)
+        return conv
 
     except ConversationAlreadyExistsError:
         raise HTTPException(
@@ -67,7 +69,9 @@ async def close_conversation(
     user_id: str = Depends(get_current_user_id),
 ):
     try:
-        return await conversation_service.close_conversation(conversation_id, user_id)
+        conv = await conversation_service.close_conversation(conversation_id, user_id)
+        await conversation_service.broadcast_conv_closed(conv)
+        return conv
     except ConversationNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
     except ConversationAuthorizationError:

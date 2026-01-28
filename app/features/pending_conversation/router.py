@@ -3,7 +3,6 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id as require_admin_user
-from app.core.websocket_manager import ws_manager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
 from app.features.pending_conversation.exceptions import PendingConversationServiceError
 from app.features.pending_conversation.schema import (
@@ -41,17 +40,7 @@ async def close_pending_conversation(
 ):
     try:
         pc = await pc_service.close_pending_conversation(pc_id)
-
-        await ws_manager.broadcast(
-            "pending_conversation:global",
-            {
-                "type": "pending_conversation.closed",
-                "payload": {
-                    "pending_conversation_id": pc.id,
-                },
-            },
-        )
-
+        await pc_service.broadcast_pc_closed(pc)
         return pc
     except PendingConversationServiceError:
         raise HTTPException(

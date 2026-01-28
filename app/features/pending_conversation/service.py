@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import selectinload
 
+from app.core.websocket_manager import ws_manager
 from app.db.pending_conversation import PendingConversation
 from app.db.pending_message import PendingMessage
 from app.db.visitor import Visitor
@@ -115,3 +116,14 @@ class PendingConversationService:
         await self.db.commit()
         await self.db.refresh(new_pm)
         return new_pm
+
+    async def broadcast_pc_closed(self, pc: PendingConversation) -> None:
+        await ws_manager.broadcast(
+            "pending_conversation:global",
+            {
+                "type": "pending_conversation.closed",
+                "payload": {
+                    "pending_conversation_id": pc.id,
+                },
+            },
+        )

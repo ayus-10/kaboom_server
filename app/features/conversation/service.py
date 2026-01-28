@@ -6,6 +6,7 @@ from sqlalchemy import desc, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager, selectinload
 
+from app.core.websocket_manager import ws_manager
 from app.db.conversation import Conversation
 from app.db.message import Message
 from app.db.pending_conversation import PendingConversation
@@ -146,3 +147,27 @@ class ConversationService:
         await self.db.commit()
         await self.db.refresh(conversation)
         return conversation
+
+    async def broadcast_conv_created(self, conv: Conversation):
+        await ws_manager.broadcast(
+            "conversation:global",
+            {
+                "type": "conversation.created",
+                "payload": {
+                    "conversation_id": conv.id,
+                    "conversation_visitor_id": conv.visitor_id,
+                    "conversation_created_at": conv.created_at,
+                },
+            },
+        )
+
+    async def broadcast_conv_closed(self, conv: Conversation):
+        await ws_manager.broadcast(
+            "conversation:global",
+            {
+                "type": "conversation.closed",
+                "payload": {
+                    "conversation_id": conv.id,
+                },
+            },
+        )
