@@ -2,6 +2,7 @@ from json import JSONDecodeError
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
+from app.core.schema import WSMessage
 from app.core.websocket_manager import ws_manager
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
 from app.features.pending_conversation.exceptions import InvalidVisitorIDError
@@ -67,25 +68,21 @@ async def visitor_ws(
 
             if message_type == "create":
                 try:
-                    pending_conversation = await pc_service.create_or_get_pending_conversation(
+                    result = await pc_service.create_or_get_pending_conversation(
                         visitor_id,
                     )
 
-                    await ws_manager.broadcast(
-                        "pending_conversation:global",
-                        {
-                            "type": "pending_conversation.created",
-                            "payload": {
-                                "pending_conversation_id": pending_conversation.id,
-                                "visitor_id": visitor_id,
-                            },
+                    payload = WSMessage(
+                        type="pending_conversation.created",
+                        payload={
+                            "pending_conversation_id": result["pc"].id,
+                            "visitor_id": visitor_id,
+                            "visitor_display_id": result["visitor_display_id"],
                         },
                     )
 
-                    await websocket.send_json({
-                        "type": "pending_conversation.created",
-                        "payload": {"pending_conversation_id": pending_conversation.id},
-                    })
+                    await ws_manager.broadcast("pending_conversation:global", payload)
+                    await websocket.send_json(payload)
 
                 except InvalidVisitorIDError:
                     await websocket.send_json({

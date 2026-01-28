@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import List
+from typing import List, TypedDict
 
 from pydantic import BaseModel
 
+from app.db.pending_conversation import PendingConversation
 from app.features.visitor.schema import VisitorRead
 
 
@@ -30,3 +31,7 @@ class PendingConversationReadWithMessages(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CreateOrGetPendingConversationResult(TypedDict):
+    pc: PendingConversation
+    visitor_display_id: str
