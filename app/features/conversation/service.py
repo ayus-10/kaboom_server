@@ -2,9 +2,9 @@ import uuid
 from datetime import UTC, datetime
 from typing import Optional
 
-from sqlalchemy import insert, select
+from sqlalchemy import desc, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import contains_eager, selectinload
 
 from app.db.conversation import Conversation
 from app.db.message import Message
@@ -16,6 +16,10 @@ from app.features.conversation.exceptions import (
     ConversationNotFoundError,
     ConversationServiceError,
     PendingConversationNotFoundError,
+)
+from app.features.conversation.schema import (
+    ConversationMessageRead,
+    ConversationReadWithLatestMessage,
 )
 
 
@@ -87,14 +91,47 @@ class ConversationService:
         )
         return result.scalars().first()
 
-    async def list_conversations(self, user_id: str) -> list[Conversation]:
-        result = await self.db.execute(
-            select(Conversation).where(
+    async def list_conversations(self, user_id: str) -> list[ConversationReadWithLatestMessage]:
+        latest_message_subq = (
+            select(Message)
+            .where(Message.conversation_id == Conversation.id)
+            .order_by(desc(Message.created_at))
+            .limit(1)
+            .lateral()
+        )
+
+        stmt = (
+            select(Conversation)
+            .join(latest_message_subq, isouter=True)
+            .options(contains_eager(Conversation.messages))
+            .where(
                 Conversation.user_id == user_id,
                 Conversation.closed_at.is_(None),
-            ),
+            )
         )
-        return list(result.scalars().all())
+
+        result = await self.db.execute(stmt)
+        conversation_list_raw = list(result.scalars().all())
+
+        conversation_with_latest_message: list[ConversationReadWithLatestMessage] = []
+        for c in conversation_list_raw:
+            latest_msg = c.messages[0] if c.messages else None
+            conversation_with_latest_message.append(
+                ConversationReadWithLatestMessage(
+                    id=c.id,
+                    visitor_id=c.visitor_id,
+                    created_at=c.created_at,
+                    latest_message=ConversationMessageRead(
+                        id=latest_msg.id,
+                        content=latest_msg.content,
+                        sender_actor_id=latest_msg.sender_actor_id,
+                        created_at=latest_msg.created_at,
+                    ) if latest_msg else None,
+                ),
+            )
+
+        return conversation_with_latest_message
+
 
     async def close_conversation(self, conversation_id: str, user_id: str) -> Conversation:
         conversation = await self.get_conversation(conversation_id)
