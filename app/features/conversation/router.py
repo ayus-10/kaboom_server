@@ -56,7 +56,7 @@ async def list_conversations(
 ):
     return await conversation_service.list_conversations(user_id)
 
-@router.patch(
+@router.post(
     "/{conversation_id}/close",
     response_model=ConversationRead,
     status_code=status.HTTP_200_OK,
