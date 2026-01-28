@@ -13,11 +13,11 @@ async def get_current_user_id_ws(websocket: WebSocket) -> Optional[str]:
     if not token:
         return None
 
-    user = verify_access_token(token)
-    if not user:
+    try:
+        user = verify_access_token(token)
+        return user.sub
+    except Exception:
         return None
-
-    return user.sub
 
 
 async def get_current_user_id(

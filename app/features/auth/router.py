@@ -88,7 +88,6 @@ async def google_callback(
 @router.post("/rotate")
 async def rotate_tokens(
     response: Response,
-    user_id: str = Depends(get_current_user_id),
     auth_service: AuthService = Depends(get_auth_service),
     refresh_token: Optional[str] = Cookie(None),
 ):
@@ -100,7 +99,6 @@ async def rotate_tokens(
 
     try:
         tokens = await auth_service.rotate_auth_tokens(
-            user_id=user_id,
             refresh_token=refresh_token,
         )
 

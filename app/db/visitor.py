@@ -16,6 +16,13 @@ class Visitor(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
 
+    display_id: Mapped[str] = mapped_column(
+        String(12),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
     name: Mapped[Optional[str]] = mapped_column(String(255))
     email: Mapped[Optional[str]] = mapped_column(String(255))
 

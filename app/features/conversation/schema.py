@@ -11,9 +11,21 @@ class ConversationCreate(BaseModel):
 class ConversationRead(BaseModel):
     id: str
     visitor_id: str
-    user_id: str
     created_at: datetime
-    closed_at: Optional[datetime]
 
     class Config:
         from_attributes = True
+
+
+class ConversationMessageRead(BaseModel):
+    id: str
+    sender_actor_id: str
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ConversationReadWithLatestMessage(ConversationRead):
+    latest_message: Optional[ConversationMessageRead]

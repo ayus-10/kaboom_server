@@ -8,7 +8,11 @@ from app.features.conversation.exceptions import (
     ConversationNotFoundError,
     PendingConversationNotFoundError,
 )
-from app.features.conversation.schema import ConversationCreate, ConversationRead
+from app.features.conversation.schema import (
+    ConversationCreate,
+    ConversationRead,
+    ConversationReadWithLatestMessage,
+)
 from app.features.conversation.service import ConversationService
 
 router = APIRouter()
@@ -24,10 +28,12 @@ async def create_conversation(
     user_id: str = Depends(get_current_user_id),
 ):
     try:
-        return await conversation_service.create_from_pending(
+        conv = await conversation_service.create_from_pending(
             pending_conversation_id=payload.pending_conversation_id,
             user_id=user_id,
         )
+        await conversation_service.broadcast_conv_created(conv)
+        return conv
 
     except ConversationAlreadyExistsError:
         raise HTTPException(
@@ -42,22 +48,8 @@ async def create_conversation(
         )
 
 @router.get(
-    "/{conversation_id}",
-    response_model=ConversationRead,
-    status_code=status.HTTP_200_OK,
-)
-async def get_conversation(
-    conversation_id: str,
-    conversation_service: ConversationService = Depends(get_conversation_service),
-):
-    conversation = await conversation_service.get_conversation(conversation_id)
-    if not conversation:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
-    return conversation
-
-@router.get(
     "",
-    response_model=list[ConversationRead],
+    response_model=list[ConversationReadWithLatestMessage],
     status_code=status.HTTP_200_OK,
 )
 async def list_conversations(
@@ -66,7 +58,7 @@ async def list_conversations(
 ):
     return await conversation_service.list_conversations(user_id)
 
-@router.patch(
+@router.post(
     "/{conversation_id}/close",
     response_model=ConversationRead,
     status_code=status.HTTP_200_OK,
@@ -77,7 +69,9 @@ async def close_conversation(
     user_id: str = Depends(get_current_user_id),
 ):
     try:
-        return await conversation_service.close_conversation(conversation_id, user_id)
+        conv = await conversation_service.close_conversation(conversation_id, user_id)
+        await conversation_service.broadcast_conv_closed(conv)
+        return conv
     except ConversationNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
     except ConversationAuthorizationError:

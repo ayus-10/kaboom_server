@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.strategy_options import selectinload
 
+from app.core.websocket_manager import ws_manager
 from app.db.pending_conversation import PendingConversation
 from app.db.pending_message import PendingMessage
 from app.db.visitor import Visitor
@@ -13,6 +14,7 @@ from app.features.pending_conversation.exceptions import (
     InvalidVisitorIDError,
     PendingConversationServiceError,
 )
+from app.features.pending_conversation.schema import CreateOrGetPendingConversationResult
 from app.features.visitor.service import VisitorService
 
 
@@ -21,7 +23,10 @@ class PendingConversationService:
         self.db = db
         self.visitor_service  = visitor_service
 
-    async def create_or_get_pending_conversation(self, visitor_id: str) -> PendingConversation:
+    async def create_or_get_pending_conversation(
+        self,
+        visitor_id: str,
+    ) -> CreateOrGetPendingConversationResult:
         result = await self.db.execute(select(Visitor).where(Visitor.id == visitor_id))
         visitor = result.scalars().first()
         if not visitor:
@@ -34,7 +39,10 @@ class PendingConversationService:
         )
         existing_pc = result.scalars().first()
         if existing_pc:
-            return existing_pc
+            return {
+                "pc": existing_pc,
+                "visitor_display_id": visitor.display_id,
+            }
 
         new_pc = PendingConversation(
             id=str(uuid.uuid4()),
@@ -43,7 +51,10 @@ class PendingConversationService:
         self.db.add(new_pc)
         await self.db.commit()
         await self.db.refresh(new_pc)
-        return new_pc
+        return {
+            "pc": new_pc,
+            "visitor_display_id": visitor.display_id,
+        }
 
     async def list_pending_conversations(self) -> list[PendingConversation]:
         result = await self.db.execute(
@@ -54,6 +65,7 @@ class PendingConversationService:
             )
             .options(
                 selectinload(PendingConversation.pending_messages),
+                selectinload(PendingConversation.visitor),
             ),
         )
         pending_conversations = result.scalars().all()
@@ -115,3 +127,14 @@ class PendingConversationService:
         await self.db.commit()
         await self.db.refresh(new_pm)
         return new_pm
+
+    async def broadcast_pc_closed(self, pc: PendingConversation) -> None:
+        await ws_manager.broadcast(
+            "pending_conversation:global",
+            {
+                "type": "pending_conversation.closed",
+                "payload": {
+                    "pending_conversation_id": pc.id,
+                },
+            },
+        )
