@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.constants import ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_SECONDS
 from app.core.tokens import create_access_token, create_refresh_token
+from app.core.tokens import verify_refresh_token as decode_refresh_token
 from app.db.refresh_token import RefreshToken
 from app.features.auth.exceptions import AuthServiceError, InvalidRefreshTokenError
 from app.features.auth.schema import AuthTokenPair, GooglePayload, LoginResult
@@ -35,9 +36,12 @@ class AuthService:
 
         return LoginResult(tokens=tokens, is_new=result["is_new"])
 
-    async def rotate_auth_tokens(self, user_id: str, refresh_token: str) -> AuthTokenPair:
+    async def rotate_auth_tokens(self, refresh_token: str) -> AuthTokenPair:
         try:
             token_hash = self._get_token_hash(refresh_token)
+
+            token_payload = decode_refresh_token(refresh_token)
+            user_id = token_payload.sub
 
             is_token_valid = await self._verify_refresh_token(
                 user_id=user_id,
