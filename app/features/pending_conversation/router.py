@@ -29,24 +29,6 @@ async def list_pending_conversations(
     return pcs
 
 
-@router.get(
-    "/{pc_id}",
-    response_model=PendingConversationRead,
-    status_code=status.HTTP_200_OK,
-    dependencies=[Depends(require_admin_user)],
-)
-async def get_pending_conversation(
-    pc_id: str,
-    pc_service: PendingConversationService = Depends(get_pending_conversation_service),
-):
-    pc = await pc_service.get_pending_conversation(pc_id=pc_id)
-    if not pc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Pending conversation not found",
-        )
-    return pc
-
 @router.post(
     "/{pc_id}/close",
     response_model=PendingConversationRead,
