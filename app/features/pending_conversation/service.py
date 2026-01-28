@@ -55,6 +55,7 @@ class PendingConversationService:
             )
             .options(
                 selectinload(PendingConversation.pending_messages),
+                selectinload(PendingConversation.visitor),
             ),
         )
         pending_conversations = result.scalars().all()

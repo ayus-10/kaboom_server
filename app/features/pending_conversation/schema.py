@@ -3,6 +3,8 @@ from typing import List
 
 from pydantic import BaseModel
 
+from app.features.visitor.schema import VisitorRead
+
 
 class PendingConversationRead(BaseModel):
     id: str
@@ -25,6 +27,7 @@ class PendingConversationReadWithMessages(BaseModel):
     visitor_id: str
     created_at: datetime
     pending_messages: List[PendingMessageRead] = []
+    visitor: VisitorRead
 
     class Config:
         from_attributes = True
