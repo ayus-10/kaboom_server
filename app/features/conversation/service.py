@@ -22,6 +22,7 @@ from app.features.conversation.schema import (
     ConversationMessageRead,
     ConversationReadWithLatestMessage,
 )
+from app.features.visitor.schema import VisitorRead
 
 
 class ConversationService:
@@ -65,6 +66,8 @@ class ConversationService:
         await self.db.commit()
         await self.db.refresh(new_conversation)
 
+        new_conversation.visitor = visitor
+
         messages_payload = [
             {
                 "id": str(uuid.uuid4()),
@@ -85,14 +88,21 @@ class ConversationService:
 
     async def get_conversation(self, conversation_id: str) -> Optional[Conversation]:
         result = await self.db.execute(
-            select(Conversation).where(
+            select(Conversation)
+            .options(
+                selectinload(Conversation.visitor),
+            )
+            .where(
                 Conversation.id == conversation_id,
                 Conversation.closed_at.is_(None),
             ),
         )
         return result.scalars().first()
 
-    async def list_conversations(self, user_id: str) -> list[ConversationReadWithLatestMessage]:
+    async def list_conversations(
+        self,
+        user_id: str,
+    ) -> list[ConversationReadWithLatestMessage]:
         latest_message_subq = (
             select(Message)
             .where(Message.conversation_id == Conversation.id)
@@ -105,7 +115,10 @@ class ConversationService:
         stmt = (
             select(Conversation)
             .join(latest_message_subq, isouter=True)
-            .options(contains_eager(Conversation.messages))
+            .options(
+                contains_eager(Conversation.messages),
+                selectinload(Conversation.visitor),
+            )
             .where(
                 Conversation.user_id == user_id,
                 Conversation.closed_at.is_(None),
@@ -121,8 +134,11 @@ class ConversationService:
             conversation_with_latest_message.append(
                 ConversationReadWithLatestMessage(
                     id=c.id,
-                    visitor_id=c.visitor_id,
                     created_at=c.created_at,
+                    visitor=VisitorRead(
+                        id=c.visitor.id,
+                        display_id=c.visitor.display_id,
+                    ),
                     latest_message=ConversationMessageRead(
                         id=latest_msg.id,
                         content=latest_msg.content,
