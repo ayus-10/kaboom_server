@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.features.visitor.schema import VisitorRead
+
 
 class ConversationCreate(BaseModel):
     pending_conversation_id: str
@@ -10,7 +12,7 @@ class ConversationCreate(BaseModel):
 
 class ConversationRead(BaseModel):
     id: str
-    visitor_id: str
+    visitor: VisitorRead
     created_at: datetime
 
     class Config:

@@ -12,12 +12,10 @@ from app.features.visitor.service import VisitorService
 
 router = APIRouter()
 
-"""
-This endpoint is used to:
-    1. Create a visitor on connection
-    2. Create a pending conversation (on event "create"), broadcast to pending_conversation:global
-    3. Create a pending message (on event "send-message"), broadcast to pending_conversation:global
-"""
+# This endpoint is used to:
+# 1. Create a visitor on connection
+# 2. Create a pending conversation (on event "create"), broadcast to pending_conversation:global
+# 3. Create a pending message (on event "send-message"), broadcast to pending_conversation:global
 @router.websocket("/ws/visitor")
 async def visitor_ws(
     websocket: WebSocket,
@@ -29,7 +27,6 @@ async def visitor_ws(
     visitor_id = websocket.query_params.get("visitor_id")
 
     if not visitor_id:
-        # TODO: figure this out
         visitor = await visitor_service.create_visitor(name=None, email=None)
         visitor_id = visitor.id
         await websocket.send_json({
@@ -50,7 +47,7 @@ async def visitor_ws(
             "payload": {"visitor_id": visitor_id, "visitor_actor_id": visitor.actor_id},
         })
 
-    room = f"pending_conversation:{visitor_id}"
+    room = f"visitor:{visitor_id}"
     await ws_manager.connect(websocket, room)
 
     try:
@@ -91,11 +88,7 @@ async def visitor_ws(
                     })
             elif message_type == "send-message":
                 msg_content = data.get("message")
-                if not msg_content:
-                    await websocket.send_json({
-                        "type": "error",
-                        "payload": {"message": "No message content"},
-                    })
+                if not isinstance(msg_content, str) or not msg_content.strip():
                     continue
 
                 pc = await pc_service.get_pending_conversation(visitor_id=visitor_id)
@@ -128,8 +121,6 @@ async def visitor_ws(
                     "type": "pending_message.created",
                     "payload": {"pending_message_id": pm.id},
                 })
-            elif message_type == "ping":
-                await websocket.send_json({"type": "pong"})
             else:
                 await websocket.send_json({
                     "type": "error",

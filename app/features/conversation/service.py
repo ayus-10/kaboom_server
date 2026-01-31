@@ -4,7 +4,7 @@ from typing import Optional
 
 from sqlalchemy import desc, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, selectinload
+from sqlalchemy.orm import selectinload
 
 from app.core.websocket_manager import ws_manager
 from app.db.conversation import Conversation
@@ -22,6 +22,7 @@ from app.features.conversation.schema import (
     ConversationMessageRead,
     ConversationReadWithLatestMessage,
 )
+from app.features.visitor.schema import VisitorRead
 
 
 class ConversationService:
@@ -65,6 +66,8 @@ class ConversationService:
         await self.db.commit()
         await self.db.refresh(new_conversation)
 
+        new_conversation.visitor = visitor
+
         messages_payload = [
             {
                 "id": str(uuid.uuid4()),
@@ -85,16 +88,29 @@ class ConversationService:
 
     async def get_conversation(self, conversation_id: str) -> Optional[Conversation]:
         result = await self.db.execute(
-            select(Conversation).where(
+            select(Conversation)
+            .options(
+                selectinload(Conversation.visitor),
+            )
+            .where(
                 Conversation.id == conversation_id,
                 Conversation.closed_at.is_(None),
             ),
         )
         return result.scalars().first()
 
-    async def list_conversations(self, user_id: str) -> list[ConversationReadWithLatestMessage]:
+    async def list_conversations(
+        self,
+        user_id: str,
+    ) -> list[ConversationReadWithLatestMessage]:
         latest_message_subq = (
-            select(Message)
+            select(
+                Message.conversation_id,
+                Message.id.label("latest_message_id"),
+                Message.content.label("latest_message_content"),
+                Message.sender_actor_id.label("latest_message_sender_actor_id"),
+                Message.created_at.label("latest_message_created_at"),
+            )
             .where(Message.conversation_id == Conversation.id)
             .order_by(desc(Message.created_at))
             .limit(1)
@@ -103,32 +119,40 @@ class ConversationService:
         )
 
         stmt = (
-            select(Conversation)
-            .join(latest_message_subq, isouter=True)
-            .options(contains_eager(Conversation.messages))
+            select(
+                Conversation,
+                latest_message_subq.c.latest_message_id,
+                latest_message_subq.c.latest_message_content,
+                latest_message_subq.c.latest_message_sender_actor_id,
+                latest_message_subq.c.latest_message_created_at,
+            )
             .where(
                 Conversation.user_id == user_id,
                 Conversation.closed_at.is_(None),
             )
+            .join(latest_message_subq, isouter=True)
+            .options(selectinload(Conversation.visitor))
         )
 
         result = await self.db.execute(stmt)
-        conversation_list_raw = list(result.unique().scalars().all())
+        rows = result.all()
 
         conversation_with_latest_message: list[ConversationReadWithLatestMessage] = []
-        for c in conversation_list_raw:
-            latest_msg = c.messages[0] if c.messages else None
+        for conv, msg_id, msg_content, msg_sender, msg_created_at in rows:
             conversation_with_latest_message.append(
                 ConversationReadWithLatestMessage(
-                    id=c.id,
-                    visitor_id=c.visitor_id,
-                    created_at=c.created_at,
+                    id=conv.id,
+                    created_at=conv.created_at,
+                    visitor=VisitorRead(
+                        id=conv.visitor.id,
+                        display_id=conv.visitor.display_id,
+                    ),
                     latest_message=ConversationMessageRead(
-                        id=latest_msg.id,
-                        content=latest_msg.content,
-                        sender_actor_id=latest_msg.sender_actor_id,
-                        created_at=latest_msg.created_at,
-                    ) if latest_msg else None,
+                        id=msg_id,
+                        content=msg_content,
+                        sender_actor_id=msg_sender,
+                        created_at=msg_created_at,
+                    ) if msg_id else None,
                 ),
             )
 
@@ -155,8 +179,8 @@ class ConversationService:
                 "type": "conversation.created",
                 "payload": {
                     "conversation_id": conv.id,
-                    "conversation_visitor_id": conv.visitor_id,
-                    "conversation_created_at": conv.created_at,
+                    "conversation_visitor_id": conv.visitor.id,
+                    "conversation_visitor_display_id": conv.visitor.display_id,
                 },
             },
         )
