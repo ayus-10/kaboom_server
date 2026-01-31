@@ -171,7 +171,8 @@ class ConversationService:
                 "type": "conversation.created",
                 "payload": {
                     "conversation_id": conv.id,
-                    "conversation_visitor_id": conv.visitor_id,
+                    "conversation_visitor_id": conv.visitor.id,
+                    "conversation_visitor_display_id": conv.visitor.display_id,
                     "conversation_created_at": conv.created_at,
                 },
             },
