@@ -2,16 +2,6 @@
 
 This repository contains the backend service for Kaboom. This is an API-only service intended to be used with a separate frontend.
 
-## Features
-
-- Visitors can start conversations (anonymous)
-- Conversations begin in a pending state
-- Admin users can accept pending conversations
-- Real-time messaging within conversations
-- Support for multiple projects
-- Multiple admins can be a part of a project
-
-
 ___
 
 
@@ -38,17 +28,17 @@ poetry run pyright
 ### Creating database migration:
 
 ```bash
-alembic revision --autogenerate -m "migration message"
+poetry run alembic revision --autogenerate -m "migration message"
 ```
 
 ### Undo the most recent migration:
 ```bash
-alembic downgrade -1
+poetry run alembic downgrade -1
 ```
 
 ### Apply all migrations:
 ```bash
-alembic upgrade head
+poetry run alembic upgrade head
 ```
 
 ### Running the Server
