@@ -29,7 +29,6 @@ async def visitor_ws(
     visitor_id = websocket.query_params.get("visitor_id")
 
     if not visitor_id:
-        # TODO: figure this out
         visitor = await visitor_service.create_visitor(name=None, email=None)
         visitor_id = visitor.id
         await websocket.send_json({
@@ -50,7 +49,7 @@ async def visitor_ws(
             "payload": {"visitor_id": visitor_id, "visitor_actor_id": visitor.actor_id},
         })
 
-    room = f"pending_conversation:{visitor_id}"
+    room = f"visitor:{visitor_id}"
     await ws_manager.connect(websocket, room)
 
     try:
@@ -128,8 +127,6 @@ async def visitor_ws(
                     "type": "pending_message.created",
                     "payload": {"pending_message_id": pm.id},
                 })
-            elif message_type == "ping":
-                await websocket.send_json({"type": "pong"})
             else:
                 await websocket.send_json({
                     "type": "error",
