@@ -12,12 +12,10 @@ from app.features.visitor.service import VisitorService
 
 router = APIRouter()
 
-"""
-This endpoint is used to:
-    1. Create a visitor on connection
-    2. Create a pending conversation (on event "create"), broadcast to pending_conversation:global
-    3. Create a pending message (on event "send-message"), broadcast to pending_conversation:global
-"""
+# This endpoint is used to:
+# 1. Create a visitor on connection
+# 2. Create a pending conversation (on event "create"), broadcast to pending_conversation:global
+# 3. Create a pending message (on event "send-message"), broadcast to pending_conversation:global
 @router.websocket("/ws/visitor")
 async def visitor_ws(
     websocket: WebSocket,

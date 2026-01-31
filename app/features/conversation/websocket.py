@@ -8,9 +8,7 @@ from app.core.websocket_manager import ws_manager
 
 router = APIRouter()
 
-"""
-This endpoint is only used to connect an admin to global room.
-"""
+# This endpoint is only used to connect an admin to global room.
 @router.websocket("/ws/conversation")
 async def admin_conversation_ws(websocket: WebSocket):
     await websocket.accept()
@@ -31,10 +29,8 @@ async def admin_conversation_ws(websocket: WebSocket):
         await ws_manager.disconnect(websocket, room)
 
 
-"""
-This endpoint is used to establish direct connection between
-an admin and a visitor, for some conversation_id.
-"""
+# This endpoint is used to establish direct connection between
+# an admin and a visitor, for some conversation_id.
 @router.websocket("/ws/conversation/{conversation_id}")
 async def conversation_ws(websocket: WebSocket, conversation_id: UUID):
     await websocket.accept()
