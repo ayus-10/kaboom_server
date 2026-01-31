@@ -88,11 +88,7 @@ async def visitor_ws(
                     })
             elif message_type == "send-message":
                 msg_content = data.get("message")
-                if not msg_content:
-                    await websocket.send_json({
-                        "type": "error",
-                        "payload": {"message": "No message content"},
-                    })
+                if not isinstance(msg_content, str) or not msg_content.strip():
                     continue
 
                 pc = await pc_service.get_pending_conversation(visitor_id=visitor_id)
