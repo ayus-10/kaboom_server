@@ -174,6 +174,15 @@ class ConversationService:
 
     async def broadcast_conv_created(self, conv: Conversation):
         await ws_manager.broadcast(
+            f"visitor:{conv.visitor_id}",
+            {
+                "type": "conversation.created",
+                "payload": {
+                    "conversation_id": conv.id,
+                }
+            }
+        )
+        await ws_manager.broadcast(
             "conversation:global",
             {
                 "type": "conversation.created",
