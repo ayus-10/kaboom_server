@@ -6,3 +6,6 @@ class InvalidVisitorIDError(PendingConversationServiceError):
 
 class PendingConversationNotFoundError(PendingConversationServiceError):
     pass
+
+class PendingMessageAuthorizationError(PendingConversationServiceError):
+    pass

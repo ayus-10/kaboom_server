@@ -2,7 +2,6 @@ from json import JSONDecodeError
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
-from app.core.schema import WSMessage
 from app.core.utils import get_sanitized_str
 from app.core.websocket_manager import ws_manager
 from app.features.conversation.dependencies import get_conversation_service
@@ -11,7 +10,10 @@ from app.features.message.dependencies import get_message_service
 from app.features.message.exceptions import MessageAuthorizationError
 from app.features.message.service import MessageService
 from app.features.pending_conversation.dependencies import get_pending_conversation_service
-from app.features.pending_conversation.exceptions import InvalidVisitorIDError, PendingConversationServiceError
+from app.features.pending_conversation.exceptions import (
+    InvalidVisitorIDError,
+    PendingMessageAuthorizationError,
+)
 from app.features.pending_conversation.service import PendingConversationService
 from app.features.visitor.dependencies import get_visitor_service
 from app.features.visitor.service import VisitorService
@@ -74,26 +76,24 @@ async def visitor_ws(
 
             if message_type == "create":
                 try:
-                    result = await pc_service.create_or_get_pending_conversation(
+                    pc = await pc_service.create_or_get_pending_conversation(
                         visitor_id,
                     )
-
-                    payload = WSMessage(
-                        type="pending_conversation.created",
-                        payload={
-                            "pending_conversation_id": result["pc"].id,
+                    await pc_service.broadcast_pc_created(pc)
+                    await websocket.send_json({
+                        "type": "pending_conversation.created",
+                        "payload": {
+                            "pending_conversation_id": pc.id,
                             "visitor_id": visitor_id,
-                            "visitor_display_id": result["visitor_display_id"],
+                            "visitor_display_id": pc.visitor.display_id,
                         },
-                    )
-
-                    await ws_manager.broadcast("pending_conversation:global", payload)
-                    await websocket.send_json(payload)
+                    })
                 except InvalidVisitorIDError:
                     await websocket.send_json({
                         "type": "error",
                         "payload": {"message": "Unable to initiate conversation"},
                     })
+                    continue
 
             elif message_type == "send-pending-message":
                 msg_content = get_sanitized_str(data, "message")
@@ -114,28 +114,17 @@ async def visitor_ws(
                         content=msg_content,
                         pc_id=pc.id,
                     )
-
-                    await ws_manager.broadcast(
-                        "pending_conversation:global",
-                        {
-                            "type": "pending_message.created",
-                            "payload": {
-                                "pending_conversation_id": pc.id,
-                                "pending_message_id": pm.id,
-                                "pending_message_content": pm.content,
-                            },
-                        },
-                    )
-
+                    await pc_service.broadcast_pm_created(pm)
                     await websocket.send_json({
                         "type": "pending_message.created",
                         "payload": {"pending_message_id": pm.id},
                     })
-                except PendingConversationServiceError:
+                except PendingMessageAuthorizationError:
                     await websocket.send_json({
                         "type": "error",
                         "payload": {"message": "Invalid pending conversation ID"},
                     })
+                    continue
 
             elif message_type == "send-message":
                 msg_content = get_sanitized_str(data, "message")
@@ -151,19 +140,7 @@ async def visitor_ws(
                         user_id=None,
                         content=msg_content,
                     )
-
-                    # await ws_manager.broadcast(
-                    #     "pending_conversation:global",
-                    #     {
-                    #         "type": "pending_message.created",
-                    #         "payload": {
-                    #             "pending_conversation_id": pc.id,
-                    #             "pending_message_id": pm.id,
-                    #             "pending_message_content": pm.content,
-                    #         },
-                    #     },
-                    # )
-
+                    # TODO: broadcast to admin
                     await websocket.send_json({
                         "type": "message.created",
                         "payload": {"message_id": msg.id},
@@ -173,6 +150,7 @@ async def visitor_ws(
                         "type": "error",
                         "payload": {"message": "Invalid conversation ID"},
                     })
+                    continue
             else:
                 await websocket.send_json({
                     "type": "error",

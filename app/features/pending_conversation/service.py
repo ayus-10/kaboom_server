@@ -13,8 +13,8 @@ from app.db.visitor import Visitor
 from app.features.pending_conversation.exceptions import (
     InvalidVisitorIDError,
     PendingConversationServiceError,
+    PendingMessageAuthorizationError,
 )
-from app.features.pending_conversation.schema import CreateOrGetPendingConversationResult
 from app.features.visitor.service import VisitorService
 
 
@@ -26,7 +26,7 @@ class PendingConversationService:
     async def create_or_get_pending_conversation(
         self,
         visitor_id: str,
-    ) -> CreateOrGetPendingConversationResult:
+    ) -> PendingConversation:
         result = await self.db.execute(select(Visitor).where(Visitor.id == visitor_id))
         visitor = result.scalars().first()
         if not visitor:
@@ -34,15 +34,13 @@ class PendingConversationService:
 
         result = await self.db.execute(
             select(PendingConversation)
+            .options(selectinload(PendingConversation.visitor))
             .where(PendingConversation.visitor_id == visitor_id)
             .where(PendingConversation.closed_at.is_(None)),
         )
         existing_pc = result.scalars().first()
         if existing_pc:
-            return {
-                "pc": existing_pc,
-                "visitor_display_id": visitor.display_id,
-            }
+            return existing_pc
 
         new_pc = PendingConversation(
             id=str(uuid.uuid4()),
@@ -51,10 +49,10 @@ class PendingConversationService:
         self.db.add(new_pc)
         await self.db.commit()
         await self.db.refresh(new_pc)
-        return {
-            "pc": new_pc,
-            "visitor_display_id": visitor.display_id,
-        }
+
+        new_pc.visitor = visitor
+
+        return new_pc
 
     async def list_pending_conversations(self) -> list[PendingConversation]:
         result = await self.db.execute(
@@ -111,11 +109,11 @@ class PendingConversationService:
     ) -> PendingMessage:
         pc = await self.get_pending_conversation(pc_id=pc_id)
         if not pc:
-            raise PendingConversationServiceError()
+            raise PendingMessageAuthorizationError()
 
         visitor = await self.visitor_service.get_visitor(visitor_id)
         if not visitor:
-            raise PendingConversationServiceError()
+            raise PendingMessageAuthorizationError()
 
         new_pm = PendingMessage(
             id=str(uuid.uuid4()),
@@ -127,6 +125,32 @@ class PendingConversationService:
         await self.db.commit()
         await self.db.refresh(new_pm)
         return new_pm
+
+    async def broadcast_pm_created(self, pm: PendingMessage) -> None:
+        await ws_manager.broadcast(
+            "pending_conversation:global",
+            {
+                "type": "pending_message.created",
+                "payload": {
+                    "pending_conversation_id": pm.pending_conversation_id,
+                    "pending_message_id": pm.id,
+                    "pending_message_content": pm.content,
+                },
+            },
+        )
+
+    async def broadcast_pc_created(self, pc: PendingConversation) -> None:
+        await ws_manager.broadcast(
+            "pending_conversation:global",
+            {
+                "type": "pending_conversation.created",
+                "payload": {
+                    "pending_conversation_id": pc.id,
+                    "visitor_id": pc.visitor_id,
+                    "visitor_display_id": pc.visitor.display_id,
+                },
+            },
+        )
 
     async def broadcast_pc_closed(self, pc: PendingConversation) -> None:
         await ws_manager.broadcast(
