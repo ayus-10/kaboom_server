@@ -172,7 +172,7 @@ class ConversationService:
         await self.db.refresh(conversation)
         return conversation
 
-    async def broadcast_conv_created(self, conv: Conversation):
+    async def broadcast_conv_created(self, conv: Conversation) -> None:
         await ws_manager.broadcast(
             f"visitor:{conv.visitor_id}",
             {
@@ -194,13 +194,47 @@ class ConversationService:
             },
         )
 
-    async def broadcast_conv_closed(self, conv: Conversation):
+    async def broadcast_conv_closed(self, conv: Conversation) -> None:
         await ws_manager.broadcast(
             "conversation:global",
             {
                 "type": "conversation.closed",
                 "payload": {
                     "conversation_id": conv.id,
+                },
+            },
+        )
+
+    async def broadcast_client_online_status(
+        self,
+        conversation_id: str,
+        client_id: str,
+        status: bool,
+    ) -> None:
+        await ws_manager.broadcast(
+            f"conversation:{conversation_id}",
+            {
+                "type": "conversation.status",
+                "payload": {
+                    "client_id": client_id,
+                    "status": "online" if status else "offline",
+                },
+            },
+        )
+
+    async def broadcast_client_typing_status(
+        self,
+        conversation_id: str,
+        client_id: str,
+        status: bool,
+    ) -> None:
+        await ws_manager.broadcast(
+            f"conversation:{conversation_id}",
+            {
+                "type": "conversation.typing",
+                "payload": {
+                    "client_id": client_id,
+                    "status": status,
                 },
             },
         )

@@ -115,6 +115,7 @@ class MessageService:
                 "type": "message.created",
                 "payload": {
                     "message_id": msg.id,
+                    "message_sender_actor_id": msg.sender_actor_id,
                     "message_content": msg.content,
                 },
             },
