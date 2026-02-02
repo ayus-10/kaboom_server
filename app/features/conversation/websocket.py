@@ -105,7 +105,7 @@ async def conversation_ws(
                         conversation_id=str(conversation_id),
                         user_id=user_id,
                         visitor_id=visitor_id,
-                        content=msg_content.strip()
+                        content=msg_content.strip(),
                     )
 
                     await ws_manager.broadcast(

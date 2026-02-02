@@ -179,8 +179,8 @@ class ConversationService:
                 "type": "conversation.created",
                 "payload": {
                     "conversation_id": conv.id,
-                }
-            }
+                },
+            },
         )
         await ws_manager.broadcast(
             "conversation:global",
