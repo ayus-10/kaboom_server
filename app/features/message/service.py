@@ -4,7 +4,6 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.websocket_manager import ws_manager
 from app.db.conversation import Conversation
 from app.db.message import Message
 from app.db.user import User
@@ -107,16 +106,3 @@ class MessageService:
 
         visitor = await self.db.get(Visitor, visitor_id)
         return visitor.actor_id if visitor else None
-
-    async def broadcast_msg_created(self, msg: Message) -> None:
-        await ws_manager.broadcast(
-            f"conversation:{msg.conversation_id}",
-            {
-                "type": "message.created",
-                "payload": {
-                    "message_id": msg.id,
-                    "message_sender_actor_id": msg.sender_actor_id,
-                    "message_content": msg.content,
-                },
-            },
-        )
