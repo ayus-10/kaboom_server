@@ -4,8 +4,6 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.core.utils import get_sanitized_str
 from app.core.websocket_manager import ws_manager
-from app.features.conversation.dependencies import get_conversation_service
-from app.features.conversation.service import ConversationService
 from app.features.message.dependencies import get_message_service
 from app.features.message.exceptions import MessageAuthorizationError
 from app.features.message.service import MessageService
@@ -30,7 +28,6 @@ async def visitor_ws(
     websocket: WebSocket,
     visitor_service: VisitorService = Depends(get_visitor_service),
     pc_service: PendingConversationService = Depends(get_pending_conversation_service),
-    conv_service: ConversationService = Depends(get_conversation_service),
     message_service: MessageService = Depends(get_message_service),
 ):
     await websocket.accept()
@@ -140,7 +137,7 @@ async def visitor_ws(
                         user_id=None,
                         content=msg_content,
                     )
-                    # TODO: broadcast to admin
+                    await message_service.broadcast_msg_created(msg)
                     await websocket.send_json({
                         "type": "message.created",
                         "payload": {"message_id": msg.id},
