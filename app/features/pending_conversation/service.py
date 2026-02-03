@@ -36,8 +36,11 @@ class PendingConversationService:
         result = await self.db.execute(
             select(PendingConversation)
             .options(selectinload(PendingConversation.visitor))
-            .where(PendingConversation.visitor_id == visitor_id)
-            .where(PendingConversation.closed_at.is_(None)),
+            .where(
+                PendingConversation.visitor_id == visitor_id,
+                PendingConversation.closed_at.is_(None),
+                PendingConversation.accepted_at.is_(None),
+            ),
         )
         existing_pc = result.scalars().first()
         if existing_pc:
