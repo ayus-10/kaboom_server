@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.db.conversation import Conversation
+    from app.db.pending_conversation import PendingConversation
     from app.db.project import Project
 
 class Widget(Base):
@@ -35,3 +37,12 @@ class Widget(Base):
     )
 
     project: Mapped["Project"] = relationship(back_populates="widgets")
+
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="widget",
+        cascade="all, delete-orphan",
+    )
+    pending_conversations: Mapped[list["PendingConversation"]] = relationship(
+        back_populates="widget",
+        cascade="all, delete-orphan",
+    )
