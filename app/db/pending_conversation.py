@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.db.conversation import Conversation
     from app.db.pending_message import PendingMessage
     from app.db.visitor import Visitor
+    from app.db.widget import Widget
 
 class PendingConversation(Base):
     __tablename__ = "pending_conversations"
@@ -18,6 +19,10 @@ class PendingConversation(Base):
 
     visitor_id: Mapped[str] = mapped_column(
         ForeignKey("visitors.id", ondelete="CASCADE"),
+        index=True,
+    )
+    widget_id: Mapped[str] = mapped_column(
+        ForeignKey("widgets.id", ondelete="CASCADE"),
         index=True,
     )
 
@@ -34,6 +39,7 @@ class PendingConversation(Base):
     )
 
     visitor: Mapped["Visitor"] = relationship(back_populates="pending_conversations")
+    widget: Mapped["Widget"] = relationship(back_populates="pending_conversations")
     conversation: Mapped[Optional["Conversation"]] = relationship(
         back_populates="pending_conversation",
         uselist=False,

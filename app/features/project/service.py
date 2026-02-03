@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.project import Project
 from app.db.widget import Widget
-
-from .exceptions import ProjectNotFound
+from app.features.project.exceptions import ProjectNotFoundError
 
 
 class ProjectService:
@@ -50,7 +49,7 @@ class ProjectService:
         project = result.scalar_one_or_none()
 
         if not project:
-            raise ProjectNotFound()
+            raise ProjectNotFoundError()
 
         return project
 

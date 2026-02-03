@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_user_id
 from app.features.project.dependencies import get_project_service
-from app.features.project.exceptions import ProjectNotFound
+from app.features.project.exceptions import ProjectNotFoundError
 from app.features.project.schema import ProjectCreate, ProjectOut, ProjectUpdate
 from app.features.project.service import ProjectService
 
@@ -33,7 +33,7 @@ async def get_project(
     try:
         project = await project_service.get_project(project_id, user_id)
         return project
-    except ProjectNotFound:
+    except ProjectNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
 @router.patch("/{project_id}", response_model=ProjectOut)
@@ -51,7 +51,7 @@ async def update_project(
             new_description=payload.description,
         )
         return project
-    except ProjectNotFound:
+    except ProjectNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
 
@@ -65,7 +65,7 @@ async def delete_project(
         await project_service.delete_project(project_id, user_id)
         return None
 
-    except ProjectNotFound:
+    except ProjectNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
 
 @router.get("/", response_model=List[ProjectOut])

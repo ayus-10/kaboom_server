@@ -1,8 +1,8 @@
 class WidgetServiceError(Exception):
     pass
 
-class WidgetNotFound(WidgetServiceError):
+class WidgetNotFoundError(WidgetServiceError):
     pass
 
-class WidgetAccessDenied(WidgetServiceError):
+class WidgetAccessDeniedError(WidgetServiceError):
     pass

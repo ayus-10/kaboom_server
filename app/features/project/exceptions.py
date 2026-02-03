@@ -1,5 +1,5 @@
 class ProjectServiceError(Exception):
     pass
 
-class ProjectNotFound(ProjectServiceError):
+class ProjectNotFoundError(ProjectServiceError):
     pass

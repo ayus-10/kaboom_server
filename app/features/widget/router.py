@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from app.core.security import get_current_user_id
 from app.features.widget.dependencies import get_widget_service
-from app.features.widget.exceptions import WidgetAccessDenied, WidgetNotFound
+from app.features.widget.exceptions import WidgetAccessDeniedError, WidgetNotFoundError
 from app.features.widget.schema import WidgetCreate, WidgetOut, WidgetUpdate
 from app.features.widget.service import WidgetService
 
@@ -29,7 +29,7 @@ async def create_widget(
         )
 
         return widget
-    except WidgetAccessDenied:
+    except WidgetAccessDeniedError:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
 
@@ -42,7 +42,7 @@ async def get_widget(
     try:
         widget = await widget_service.get_widget(widget_id, user_id)
         return widget
-    except WidgetNotFound:
+    except WidgetNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not found")
 
 
@@ -61,7 +61,7 @@ async def update_widget(
             new_description=payload.description,
         )
         return widget
-    except WidgetNotFound:
+    except WidgetNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not found")
 
 
@@ -74,7 +74,7 @@ async def delete_widget(
     try:
         await widget_service.delete_widget(widget_id, user_id)
         return None
-    except WidgetNotFound:
+    except WidgetNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Widget not found")
 
 

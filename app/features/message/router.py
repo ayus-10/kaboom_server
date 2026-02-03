@@ -29,6 +29,7 @@ async def create_message(
             visitor_id=None,
             content=payload.content,
         )
+        await message_service.broadcast_msg_created(message)
         return message
     except MessageAuthorizationError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")

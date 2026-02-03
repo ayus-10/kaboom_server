@@ -1,11 +1,13 @@
 from json import JSONDecodeError
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.core.constants import WS_POLICY_VIOLATION
 from app.core.security import get_current_user_id_ws
+from app.core.utils import get_sanitized_bool, get_sanitized_str
 from app.core.websocket_manager import ws_manager
+from app.features.conversation.dependencies import get_conversation_service
+from app.features.conversation.service import ConversationService
 from app.features.message.dependencies import get_message_service
 from app.features.message.exceptions import MessageAuthorizationError
 from app.features.message.service import MessageService
@@ -38,7 +40,8 @@ async def admin_conversation_ws(websocket: WebSocket):
 @router.websocket("/ws/conversation/{conversation_id}")
 async def conversation_ws(
     websocket: WebSocket,
-    conversation_id: UUID,
+    conversation_id: str,
+    conversation_service: ConversationService = Depends(get_conversation_service),
     message_service: MessageService = Depends(get_message_service),
 ):
     await websocket.accept()
@@ -56,15 +59,10 @@ async def conversation_ws(
     room = f"conversation:{conversation_id}"
     await ws_manager.connect(websocket, room)
 
-    await ws_manager.broadcast(
-        room,
-        {
-            "type": "conversation.status",
-            "payload": {
-                "client_id": client_id,
-                "status": "online",
-            },
-        },
+    await conversation_service.broadcast_client_online_status(
+        conversation_id=conversation_id,
+        client_id=client_id,
+        status=True,
     )
 
     try:
@@ -78,70 +76,43 @@ async def conversation_ws(
                 })
                 continue
 
-            message_type = data.get("type")
+            message_type = get_sanitized_str(data, "type")
 
             if message_type == "typing":
-                is_typing = data.get("isTyping")
-
-                if isinstance(is_typing, bool):
-                    await ws_manager.broadcast(
-                        room,
-                        {
-                            "type": "conversation.typing",
-                            "payload": {
-                                "client_id": client_id,
-                                "status": is_typing,
-                            },
-                        },
+                is_typing = get_sanitized_bool(data, "is_typing")
+                if is_typing is not None:
+                    await conversation_service.broadcast_client_typing_status(
+                        conversation_id=conversation_id,
+                        client_id=client_id,
+                        status=is_typing,
                     )
 
             if message_type == "send-message":
                 try:
-                    msg_content = data.get("message")
-                    if not isinstance(msg_content, str) or not msg_content.strip():
+                    msg_content = get_sanitized_str(data, "message")
+                    if not msg_content:
                         continue
 
                     new_msg = await message_service.create_message(
-                        conversation_id=str(conversation_id),
+                        conversation_id=conversation_id,
                         user_id=user_id,
                         visitor_id=visitor_id,
-                        content=msg_content.strip()
+                        content=msg_content,
                     )
-
-                    await ws_manager.broadcast(
-                        room,
-                        {
-                            "type": "conversation.message_created",
-                            "payload": {
-                                "id": new_msg.id,
-                                "sender_actor_id": new_msg.sender_actor_id,
-                                "content": new_msg.content,
-                            },
-                        },
-                    )
+                    await message_service.broadcast_msg_created(new_msg)
                 except MessageAuthorizationError:
                     await websocket.send_json({
                         "type": "error",
                         "payload": {"message": "Not authorized to send message"},
                     })
-                except Exception:
-                    await websocket.send_json({
-                        "type": "error",
-                        "payload": {"message": "Unable to send message"},
-                    })
-
 
     except WebSocketDisconnect:
         pass
+
     finally:
         await ws_manager.disconnect(websocket, room)
-        await ws_manager.broadcast(
-            room,
-            {
-                "type": "conversation.status",
-                "payload": {
-                    "client_id": client_id,
-                    "status": "offline",
-                },
-            },
+        await conversation_service.broadcast_client_online_status(
+            conversation_id=conversation_id,
+            client_id=client_id,
+            status=False,
         )
