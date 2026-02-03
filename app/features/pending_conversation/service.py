@@ -26,6 +26,7 @@ class PendingConversationService:
     async def create_or_get_pending_conversation(
         self,
         visitor_id: str,
+        widget_id: str,
     ) -> PendingConversation:
         result = await self.db.execute(select(Visitor).where(Visitor.id == visitor_id))
         visitor = result.scalars().first()
@@ -45,6 +46,7 @@ class PendingConversationService:
         new_pc = PendingConversation(
             id=str(uuid.uuid4()),
             visitor_id=visitor_id,
+            widget_id=widget_id,
         )
         self.db.add(new_pc)
         await self.db.commit()

@@ -61,6 +61,7 @@ class ConversationService:
             visitor_id=pending_conv.visitor_id,
             user_id=user_id,
             pending_conversation_id=pending_conv.id,
+            widget_id=pending_conv.widget_id,
         )
         self.db.add(new_conversation)
         await self.db.commit()

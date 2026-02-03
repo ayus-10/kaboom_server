@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.project import Project
 from app.db.widget import Widget
 
-from .exceptions import WidgetAccessDenied, WidgetNotFound
+from app.features.widget.exceptions import WidgetAccessDeniedError, WidgetNotFoundError
 
 
 class WidgetService:
@@ -35,7 +35,7 @@ class WidgetService:
 
         project = result.scalar_one_or_none()
         if not project:
-            raise WidgetAccessDenied()
+            raise WidgetAccessDeniedError()
 
         widget = Widget(
             id=str(uuid4()),
@@ -55,7 +55,7 @@ class WidgetService:
         self,
         widget_id: str,
         user_id: str,
-    ) -> Widget:
+    ) -> Optional[Widget]:
         result = await self.db.execute(
             select(Widget)
             .join(Project, Widget.project_id == Project.id)
@@ -68,9 +68,6 @@ class WidgetService:
         )
 
         widget = result.scalar_one_or_none()
-
-        if not widget:
-            raise WidgetNotFound()
 
         return widget
 
@@ -102,6 +99,8 @@ class WidgetService:
         new_description: Optional[str],
     ) -> Widget:
         widget = await self.get_widget(widget_id, user_id)
+        if not widget:
+            raise WidgetNotFoundError()
 
         if new_title:
             widget.title = new_title
@@ -117,6 +116,8 @@ class WidgetService:
         user_id: str,
     ) -> None:
         widget = await self.get_widget(widget_id, user_id)
+        if not widget:
+            raise WidgetNotFoundError()
 
         widget.deleted_at = datetime.now(UTC)
         await self.db.commit()

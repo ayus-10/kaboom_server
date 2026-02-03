@@ -39,7 +39,7 @@ class PendingConversation(Base):
     )
 
     visitor: Mapped["Visitor"] = relationship(back_populates="pending_conversations")
-    widget: Mapped["Widget"] = relationship(back_populates="conversations")
+    widget: Mapped["Widget"] = relationship(back_populates="pending_conversations")
     conversation: Mapped[Optional["Conversation"]] = relationship(
         back_populates="pending_conversation",
         uselist=False,

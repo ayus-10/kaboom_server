@@ -28,6 +28,15 @@ async def visitor_ws(
     await websocket.accept()
 
     visitor_id = websocket.query_params.get("visitor_id")
+    widget_id = websocket.query_params.get("widget_id")
+
+    if not widget_id:
+        await websocket.send_json({
+            "type": "error",
+            "payload": {"message": "Invalid widget ID"},
+        })
+        await websocket.close()
+        return
 
     if not visitor_id:
         visitor = await visitor_service.create_visitor(name=None, email=None)
@@ -69,7 +78,8 @@ async def visitor_ws(
             if message_type == "create":
                 try:
                     pc = await pc_service.create_or_get_pending_conversation(
-                        visitor_id,
+                        visitor_id=visitor_id,
+                        widget_id=widget_id,
                     )
                     await pc_service.broadcast_pc_created(pc)
                     await websocket.send_json({
