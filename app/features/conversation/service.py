@@ -206,19 +206,6 @@ class ConversationService:
             },
         )
 
-    async def broadcast_msg_created(self, msg: Message) -> None:
-        await ws_manager.broadcast(
-            f"conversation:{msg.conversation_id}",
-            {
-                "type": "conversation.message_created",
-                "payload": {
-                    "message_id": msg.id,
-                    "message_sender_actor_id": msg.sender_actor_id,
-                    "message_content": msg.content,
-                },
-            },
-        )
-
     async def broadcast_client_online_status(
         self,
         conversation_id: str,

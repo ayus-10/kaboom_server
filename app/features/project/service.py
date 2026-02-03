@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.project import Project
 from app.db.widget import Widget
-
 from app.features.project.exceptions import ProjectNotFoundError
 
 

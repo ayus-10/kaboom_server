@@ -99,7 +99,7 @@ async def conversation_ws(
                         visitor_id=visitor_id,
                         content=msg_content,
                     )
-                    await conversation_service.broadcast_msg_created(new_msg)
+                    await message_service.broadcast_msg_created(new_msg)
                 except MessageAuthorizationError:
                     await websocket.send_json({
                         "type": "error",
